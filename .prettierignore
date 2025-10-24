@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+build/
+dist/
+out/
+
+# Coverage
+coverage/
+
+# Cache
+.cache/
+.parcel-cache/
+
+# Logs
+*.log
+
+# Environment
+.env*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Generated files
+*.tsbuildinfo
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Test results
+test-results/
+playwright-report/
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~

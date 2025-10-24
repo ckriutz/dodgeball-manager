@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+build/
+dist/
+out/
+
+# Coverage
+coverage/
+
+# Cache
+.cache/
+.parcel-cache/
+
+# Logs
+*.log
+
+# Environment
+.env*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Generated files
+*.tsbuildinfo
+
+# Test results
+test-results/
+playwright-report/
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
