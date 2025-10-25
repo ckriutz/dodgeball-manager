@@ -46,14 +46,14 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T014 Implement in-memory storage manager singleton in backend/src/storage/memory_storage.py
-- [ ] T015 Create FastAPI application entry point in backend/src/main.py with CORS configuration
-- [ ] T016 [P] Implement error handling middleware in backend/src/api/errors.py
-- [ ] T017 [P] Create base Pydantic models for API responses in backend/src/api/schemas.py
-- [ ] T018 [P] Setup API client service structure in frontend/src/services/api.ts
-- [ ] T019 [P] Create React Context for league state in frontend/src/contexts/LeagueContext.tsx
-- [ ] T020 Create main App component with routing in frontend/src/App.tsx
-- [ ] T021 [P] Create common TypeScript types in frontend/src/types/index.ts
+- [X] T014 Implement in-memory storage manager singleton in backend/src/storage/memory_storage.py
+- [X] T015 Create FastAPI application entry point in backend/src/main.py with CORS configuration
+- [X] T016 [P] Implement error handling middleware in backend/src/api/errors.py
+- [X] T017 [P] Create base Pydantic models for API responses in backend/src/api/schemas.py
+- [X] T018 [P] Setup API client service structure in frontend/src/services/api.ts
+- [X] T019 [P] Create React Context for league state in frontend/src/contexts/LeagueContext.tsx
+- [X] T020 Create main App component with routing in frontend/src/App.tsx
+- [X] T021 [P] Create common TypeScript types in frontend/src/types/index.ts
 - [ ] T022 [P] Implement utility functions for player value calculation in backend/src/services/utils.py
 - [ ] T023 [P] Create test fixtures for in-memory storage in backend/tests/conftest.py
 

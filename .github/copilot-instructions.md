@@ -26,4 +26,5 @@ Python 3.11+ (backend), Node.js 18+ with TypeScript (frontend): Follow standard 
 - 001-fantasy-league: Added Python 3.11+ (backend), Node.js 18+ with TypeScript (frontend) + FastAPI (backend), React 18, Tailwind CSS 3 (frontend)
 
 <!-- MANUAL ADDITIONS START -->
+When executing python commands, might need to use `python3` instead of `python` depending on system configuration.
 <!-- MANUAL ADDITIONS END -->
