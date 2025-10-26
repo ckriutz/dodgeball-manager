@@ -7,8 +7,10 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LeagueProvider } from './contexts/LeagueContext';
+import { LeaguePage } from './pages/LeaguePage';
+import { PlayersPage } from './pages/PlayersPage';
 
-// Placeholder components - these will be implemented in user stories
+// Home page component
 const HomePage: React.FC = () => (
   <div className="min-h-screen bg-gray-100 flex items-center justify-center">
     <div className="text-center">
@@ -32,24 +34,6 @@ const HomePage: React.FC = () => (
           API Docs
         </a>
       </div>
-    </div>
-  </div>
-);
-
-const LeaguesPage: React.FC = () => (
-  <div className="min-h-screen bg-gray-100 p-8">
-    <div className="max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Leagues</h1>
-      <p className="text-gray-600">League management will be implemented in User Story 1</p>
-    </div>
-  </div>
-);
-
-const PlayersPage: React.FC = () => (
-  <div className="min-h-screen bg-gray-100 p-8">
-    <div className="max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Players</h1>
-      <p className="text-gray-600">Player browsing will be implemented in User Story 1</p>
     </div>
   </div>
 );
@@ -101,8 +85,9 @@ const App: React.FC = () => {
             <Route path="/" element={<HomePage />} />
             
             {/* League routes */}
-            <Route path="/leagues" element={<LeaguesPage />} />
-            <Route path="/leagues/:leagueId" element={<LeaguesPage />} />
+            <Route path="/leagues" element={<LeaguePage />} />
+            <Route path="/leagues/:leagueId" element={<LeaguePage />} />
+            <Route path="/leagues/:leagueId/players" element={<PlayersPage />} />
             
             {/* Player routes */}
             <Route path="/players" element={<PlayersPage />} />

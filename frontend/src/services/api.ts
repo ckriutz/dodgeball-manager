@@ -167,8 +167,8 @@ export const leagueApi = {
   /**
    * Create a new league
    */
-  createLeague: async (name: string, playerCount?: number) => {
-    return apiClient.post('/leagues', { name, player_count: playerCount });
+  createLeague: async (data: { name: string; player_count?: number }) => {
+    return apiClient.post('/leagues', data);
   },
 
   /**

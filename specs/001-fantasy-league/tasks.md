@@ -54,8 +54,8 @@
 - [X] T019 [P] Create React Context for league state in frontend/src/contexts/LeagueContext.tsx
 - [X] T020 Create main App component with routing in frontend/src/App.tsx
 - [X] T021 [P] Create common TypeScript types in frontend/src/types/index.ts
-- [ ] T022 [P] Implement utility functions for player value calculation in backend/src/services/utils.py
-- [ ] T023 [P] Create test fixtures for in-memory storage in backend/tests/conftest.py
+- [X] T022 [P] Implement utility functions for player value calculation in backend/src/services/utils.py
+- [X] T023 [P] Create test fixtures for in-memory storage in backend/tests/conftest.py
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -69,29 +69,29 @@
 
 ### Tests for User Story 1
 
-- [ ] T024 [P] [US1] Unit test for player value calculation formula in backend/tests/unit/test_player_value.py
-- [ ] T025 [P] [US1] Unit test for skill distribution validation in backend/tests/unit/test_player_generation.py
-- [ ] T026 [P] [US1] Integration test for league creation endpoint in backend/tests/integration/test_leagues.py
-- [ ] T027 [P] [US1] Integration test for player generation endpoint in backend/tests/integration/test_players.py
+- [X] T024 [P] [US1] Unit test for player value calculation formula in backend/tests/unit/test_player_value.py
+- [X] T025 [P] [US1] Unit test for skill distribution validation in backend/tests/unit/test_player_generation.py
+- [X] T026 [P] [US1] Integration test for league creation endpoint in backend/tests/integration/test_leagues.py
+- [X] T027 [P] [US1] Integration test for player generation endpoint in backend/tests/integration/test_players.py
 
 ### Implementation for User Story 1
 
-- [ ] T028 [P] [US1] Create Player model with validation in backend/src/models/player.py
-- [ ] T029 [P] [US1] Create League model in backend/src/models/league.py
-- [ ] T030 [US1] Implement PlayerService with player generation logic in backend/src/services/player_service.py
-- [ ] T031 [US1] Implement LeagueService with league creation logic in backend/src/services/league_service.py
-- [ ] T032 [US1] Implement POST /api/leagues endpoint in backend/src/api/leagues.py
-- [ ] T033 [US1] Implement GET /api/leagues/{league_id} endpoint in backend/src/api/leagues.py
-- [ ] T034 [US1] Implement POST /api/leagues/{league_id}/players (generate players) in backend/src/api/leagues.py
-- [ ] T035 [US1] Implement GET /api/leagues/{league_id}/players endpoint in backend/src/api/leagues.py
-- [ ] T036 [P] [US1] Create PlayerCard component in frontend/src/components/player/PlayerCard.tsx
-- [ ] T037 [P] [US1] Create PlayerList component in frontend/src/components/player/PlayerList.tsx
-- [ ] T038 [P] [US1] Create LeagueForm component in frontend/src/components/league/LeagueForm.tsx
-- [ ] T039 [US1] Create LeaguePage with league creation and player generation in frontend/src/pages/LeaguePage.tsx
-- [ ] T040 [US1] Create PlayersPage for browsing player pool in frontend/src/pages/PlayersPage.tsx
-- [ ] T041 [US1] Add league and player API methods to frontend/src/services/api.ts
-- [ ] T042 [P] [US1] Component test for PlayerCard in frontend/tests/components/PlayerCard.test.tsx
-- [ ] T043 [P] [US1] Component test for PlayerList in frontend/tests/components/PlayerList.test.tsx
+- [X] T028 [P] [US1] Create Player model with validation in backend/src/models/player.py
+- [X] T029 [P] [US1] Create League model in backend/src/models/league.py
+- [X] T030 [US1] Implement PlayerService with player generation logic in backend/src/services/player_service.py
+- [X] T031 [US1] Implement LeagueService with league creation logic in backend/src/services/league_service.py
+- [X] T032 [US1] Implement POST /api/leagues endpoint in backend/src/api/leagues.py
+- [X] T033 [US1] Implement GET /api/leagues/{league_id} endpoint in backend/src/api/leagues.py
+- [X] T034 [US1] Implement POST /api/leagues/{league_id}/players (generate players) in backend/src/api/leagues.py
+- [X] T035 [US1] Implement GET /api/leagues/{league_id}/players endpoint in backend/src/api/leagues.py
+- [X] T036 [P] [US1] Create PlayerCard component in frontend/src/components/player/PlayerCard.tsx
+- [X] T037 [P] [US1] Create PlayerList component in frontend/src/components/player/PlayerList.tsx
+- [X] T038 [P] [US1] Create LeagueForm component in frontend/src/components/league/LeagueForm.tsx
+- [X] T039 [US1] Create LeaguePage with league creation and player generation in frontend/src/pages/LeaguePage.tsx
+- [X] T040 [US1] Create PlayersPage for browsing player pool in frontend/src/pages/PlayersPage.tsx
+- [X] T041 [US1] Add league and player API methods to frontend/src/services/api.ts
+- [X] T042 [P] [US1] Component test for PlayerCard in frontend/tests/components/PlayerCard.test.tsx
+- [X] T043 [P] [US1] Component test for PlayerList in frontend/tests/components/PlayerList.test.tsx
 
 **Checkpoint**: User Story 1 complete - can create leagues, generate players, view player pool
 
