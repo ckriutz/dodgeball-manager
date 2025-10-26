@@ -21,10 +21,16 @@ interface PlayerListProps {
   players: Player[];
   onPlayerClick?: (player: Player) => void;
   showStats?: boolean;
-  showTeamInfo?: boolean;
   loading?: boolean;
   emptyMessage?: string;
   className?: string;
+  // Action button configuration for each card
+  actionButton?: {
+    label: string;
+    onClick: (player: Player) => void;
+    variant?: 'primary' | 'success' | 'danger';
+    isDisabled?: (player: Player) => boolean;
+  };
 }
 
 type SortField = 'name' | 'age' | 'value' | 'total_skills';
@@ -38,10 +44,10 @@ export const PlayerList: React.FC<PlayerListProps> = ({
   players,
   onPlayerClick,
   showStats = false,
-  showTeamInfo = true,
   loading = false,
   emptyMessage = 'No players found',
   className = '',
+  actionButton,
 }) => {
   // State for filtering and sorting
   const [searchQuery, setSearchQuery] = useState('');
@@ -274,8 +280,17 @@ export const PlayerList: React.FC<PlayerListProps> = ({
               player={player}
               onClick={onPlayerClick}
               showStats={showStats}
-              showTeamInfo={showTeamInfo}
               className={viewMode === 'list' ? 'w-full' : ''}
+              actionButton={
+                actionButton
+                  ? {
+                      label: actionButton.label,
+                      onClick: actionButton.onClick,
+                      variant: actionButton.variant,
+                      disabled: actionButton.isDisabled?.(player) || false,
+                    }
+                  : undefined
+              }
             />
           ))}
         </div>

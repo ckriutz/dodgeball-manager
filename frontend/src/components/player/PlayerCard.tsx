@@ -1,16 +1,8 @@
 /**
  * PlayerCard Component
  * 
- * Displays a single player's information including:
- * - Name, age, and avatar
- * - Six skill attributes (catching, throwing, dodging, speed, iq, luck)
- * - Calculated dollar value
- * - Injury status (if injured)
- * - Statistics (games played, eliminations, etc.)
- * - Team assignment status (free agent or team name)
- * - Starter designation
- * 
- * Used in player browsing, team roster management, and draft interfaces.
+ * Clean, simplified player card design inspired by modern profile layouts.
+ * Displays essential player information with a focus on readability and visual hierarchy.
  */
 
 import React from 'react';
@@ -20,35 +12,15 @@ interface PlayerCardProps {
   player: Player;
   onClick?: (player: Player) => void;
   showStats?: boolean;
-  showTeamInfo?: boolean;
   className?: string;
+  // Action button configuration
+  actionButton?: {
+    label: string;
+    onClick: (player: Player) => void;
+    variant?: 'primary' | 'success' | 'danger';
+    disabled?: boolean;
+  };
 }
-
-/**
- * Get color class for skill value
- */
-const getSkillColor = (value: number): string => {
-  if (value >= 4) return 'text-green-600 font-semibold';
-  if (value >= 2) return 'text-blue-600';
-  if (value >= 1) return 'text-gray-600';
-  return 'text-gray-400';
-};
-
-/**
- * Get injury severity badge color
- */
-const getInjuryColor = (severity: string): string => {
-  switch (severity) {
-    case 'severe':
-      return 'bg-red-100 text-red-800 border-red-300';
-    case 'moderate':
-      return 'bg-orange-100 text-orange-800 border-orange-300';
-    case 'minor':
-      return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-    default:
-      return 'bg-gray-100 text-gray-800 border-gray-300';
-  }
-};
 
 /**
  * Format dollar value with comma separators
@@ -58,19 +30,28 @@ const formatValue = (value: number): string => {
 };
 
 /**
- * PlayerCard component
+ * Get top 3 skills for display
+ */
+const getTopSkills = (skills: Player['skills']): Array<{ name: string; value: number }> => {
+  return Object.entries(skills)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 3)
+    .map(([name, value]) => ({ name, value }));
+};
+
+/**
+ * PlayerCard component - Simplified clean design
  */
 export const PlayerCard: React.FC<PlayerCardProps> = ({
   player,
   onClick,
   showStats = false,
-  showTeamInfo = true,
   className = '',
+  actionButton,
 }) => {
   const { name, age, avatar, skills, value, injury, stats, team_id, is_starter } = player;
 
-  // Calculate total skill points for validation display
-  const totalSkills = Object.values(skills).reduce((sum, val) => sum + val, 0);
+  const topSkills = getTopSkills(skills);
 
   const handleClick = () => {
     if (onClick) {
@@ -78,141 +59,147 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
     }
   };
 
+  const handleActionClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when clicking action button
+    if (actionButton && !actionButton.disabled) {
+      actionButton.onClick(player);
+    }
+  };
+
+  const getActionButtonClasses = () => {
+    const baseClasses = 'px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200';
+    const variant = actionButton?.variant || 'primary';
+    
+    if (actionButton?.disabled) {
+      return `${baseClasses} bg-gray-300 text-gray-500 cursor-not-allowed`;
+    }
+
+    switch (variant) {
+      case 'success':
+        return `${baseClasses} bg-green-600 text-white hover:bg-green-700 shadow-sm hover:shadow`;
+      case 'danger':
+        return `${baseClasses} bg-red-600 text-white hover:bg-red-700 shadow-sm hover:shadow`;
+      case 'primary':
+      default:
+        return `${baseClasses} bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow`;
+    }
+  };
+
   const cardClasses = `
-    bg-white rounded-lg shadow-md border border-gray-200 p-4
+    bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden
     transition-all duration-200
-    ${onClick ? 'cursor-pointer hover:shadow-lg hover:border-blue-400' : ''}
-    ${injury ? 'border-l-4 border-l-red-500' : ''}
+    ${onClick ? 'cursor-pointer hover:shadow-md hover:border-gray-300' : ''}
     ${className}
   `;
 
   return (
     <div className={cardClasses} onClick={handleClick}>
-      {/* Header: Name, Age, Avatar */}
-      <div className="flex items-center gap-3 mb-3">
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
-          {avatar ? (
-            <img src={avatar} alt={name} className="w-full h-full rounded-full object-cover" />
-          ) : (
-            name.charAt(0)
-          )}
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-lg text-gray-900">{name}</h3>
-            {is_starter && (
-              <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded">
-                STARTER
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-gray-600">Age {age}</p>
-        </div>
-        <div className="text-right">
-          <p className="text-lg font-bold text-green-600">{formatValue(value)}</p>
-          <p className="text-xs text-gray-500">Value</p>
-        </div>
-      </div>
-
-      {/* Injury Status */}
-      {injury && (
-        <div className={`mb-3 px-3 py-2 rounded border ${getInjuryColor(injury.severity)}`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="font-semibold text-sm capitalize">{injury.severity} Injury</span>
-              <p className="text-xs mt-0.5">
-                -{(injury.affected_reduction * 100).toFixed(0)}% to affected skills
-              </p>
-            </div>
-            <span className="text-xs font-medium">
-              {injury.games_remaining} game{injury.games_remaining !== 1 ? 's' : ''} to heal
+      {/* Header Section with Avatar and Name */}
+      <div className="relative bg-gradient-to-br from-slate-50 to-slate-100 p-6 pb-4">
+        {injury && (
+          <div className="absolute top-3 right-3">
+            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-red-100 text-red-700 border border-red-200">
+              Injured
             </span>
           </div>
-        </div>
-      )}
-
-      {/* Skills Grid */}
-      <div className="mb-3">
-        <div className="flex items-center justify-between mb-2">
-          <h4 className="text-xs font-semibold text-gray-700 uppercase">Skills</h4>
-          <span className="text-xs text-gray-500">
-            Total: {totalSkills}/10
-          </span>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          {Object.entries(skills).map(([skillName, skillValue]) => (
-            <div key={skillName} className="flex flex-col">
-              <span className="text-xs text-gray-600 capitalize mb-1">{skillName}</span>
-              <div className="flex items-center gap-1">
-                <div className="flex-1 bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${(skillValue / 10) * 100}%` }}
-                  />
-                </div>
-                <span className={`text-sm font-medium ${getSkillColor(skillValue)}`}>
-                  {skillValue}
-                </span>
-              </div>
+        )}
+        
+        <div className="flex items-start gap-4">
+          {/* Avatar */}
+          <div className="relative">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl shadow-md">
+              {avatar == "avatar-1" ? (
+                <img src="/images/default_avatar.png" alt={name} className="w-full h-full rounded-full object-cover" />
+              ) : (
+                <img src={avatar} alt={name} className="w-full h-full rounded-full object-cover" />
+              )}
             </div>
-          ))}
+            {is_starter && (
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center shadow-sm">
+                <span className="text-xs">⭐</span>
+              </div>
+            )}
+          </div>
+
+          {/* Name and Location */}
+          <div className="flex-1 pt-1">
+            <h3 className="text-xl font-bold text-gray-900 mb-1">{name}</h3>
+            <p className="text-sm text-gray-500">
+              {team_id ? `Team Player` : 'Free Agent'}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Statistics */}
-      {showStats && (
-        <div className="pt-3 border-t border-gray-200">
-          <h4 className="text-xs font-semibold text-gray-700 uppercase mb-2">Statistics</h4>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Eliminations:</span>
-              <span className="font-medium">{stats.successful_hits}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Catches:</span>
-              <span className="font-medium">{stats.catches_made}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Throws:</span>
-              <span className="font-medium">{stats.throws_attempted}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Times Hit:</span>
-              <span className="font-medium">{stats.times_hit}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Missed:</span>
-              <span className="font-medium">{stats.missed_throws}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Accuracy:</span>
-              <span className="font-medium">
-                {stats.throws_attempted > 0
-                  ? ((stats.successful_hits / stats.throws_attempted) * 100).toFixed(1)
-                  : '0.0'}
-                %
-              </span>
-            </div>
+      {/* Info Grid */}
+      <div className="p-6 pt-4 space-y-3">
+        {/* Key Stats Grid */}
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="flex justify-between items-center">
+            <span className="text-gray-500">Age</span>
+            <span className="font-semibold text-gray-900">{age}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-gray-500">Value</span>
+            <span className="font-semibold text-green-600">{formatValue(value)}</span>
           </div>
         </div>
-      )}
 
-      {/* Team Info */}
-      {showTeamInfo && (
-        <div className="pt-3 border-t border-gray-200 mt-3">
-          {team_id ? (
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">Team:</span>
-              <span className="font-medium text-blue-600">{team_id}</span>
+        {/* Top Skills and Performance - Combined Row */}
+        <div className="pt-2 border-t border-gray-100">
+          <div className={`grid ${showStats ? 'grid-cols-2 gap-4' : 'grid-cols-1'}`}>
+            {/* Top Skills */}
+            <div>
+              <div className="text-xs font-medium text-gray-600 uppercase mb-2">Top Skills</div>
+              <div className="space-y-2">
+                {topSkills.map(({ name, value }) => (
+                  <div key={name} className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600 capitalize">{name}</span>
+                    <span className="font-semibold text-gray-900">{value}/10</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
-                Free Agent
-              </span>
-              <span className="text-xs text-gray-500">Available for draft</span>
-            </div>
-          )}
+
+            {/* Performance (if enabled) */}
+            {showStats && (
+              <div>
+                <div className="text-xs font-medium text-gray-600 uppercase mb-2">Performance</div>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500">Eliminations</span>
+                    <span className="font-semibold text-gray-900">{stats.successful_hits}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500">Catches</span>
+                    <span className="font-semibold text-gray-900">{stats.catches_made}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500">Accuracy</span>
+                    <span className="font-semibold text-gray-900">
+                      {stats.throws_attempted > 0
+                        ? ((stats.successful_hits / stats.throws_attempted) * 100).toFixed(0)
+                        : '0'}
+                      %
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Action Button (if provided) */}
+      {actionButton && (
+        <div className="px-6 pb-4">
+          <button
+            onClick={handleActionClick}
+            disabled={actionButton.disabled}
+            className={`w-full ${getActionButtonClasses()}`}
+          >
+            {actionButton.label}
+          </button>
         </div>
       )}
     </div>

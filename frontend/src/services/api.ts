@@ -165,6 +165,13 @@ const apiClient = new ApiClient();
 // League API methods
 export const leagueApi = {
   /**
+   * Get all leagues
+   */
+  getLeagues: async () => {
+    return apiClient.get('/leagues');
+  },
+
+  /**
    * Create a new league
    */
   createLeague: async (data: { name: string; player_count?: number }) => {

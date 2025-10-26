@@ -56,11 +56,13 @@ class PlayerService:
         players = []
         for i in range(count):
             player = self._generate_single_player(i + 1)
+            # Storage creates the ID, so we need to store first then recreate with correct ID
+            player_dict = player.model_dump()
+            player_id = self.storage.create_player(player_dict)
+            # Get the player back with the correct ID from storage
+            player_data = self.storage.get_player(player_id)
+            player = Player(**player_data)
             players.append(player)
-
-        # Store all players
-        for player in players:
-            self.storage.create_player(player.model_dump())
 
         return players
 
@@ -88,7 +90,7 @@ class PlayerService:
         player_create = PlayerCreate(
             name=f"Player {number}",
             age=age,
-            avatar=f"avatar-{number % 10}",  # 10 different avatar placeholders
+            avatar=f"avatar-1",  # 10 different avatar placeholders
             skills=skills
         )
 

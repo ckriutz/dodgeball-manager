@@ -265,7 +265,6 @@ export const PlayersPage: React.FC = () => {
           players={players}
           onPlayerClick={handlePlayerClick}
           showStats={true}
-          showTeamInfo={true}
           loading={loading}
           emptyMessage="No players have been generated for this league yet."
         />

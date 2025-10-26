@@ -105,29 +105,29 @@
 
 ### Tests for User Story 2
 
-- [ ] T044 [P] [US2] Unit test for budget validation in backend/tests/unit/test_team_budget.py
-- [ ] T045 [P] [US2] Unit test for roster size validation in backend/tests/unit/test_team_roster.py
-- [ ] T046 [P] [US2] Integration test for team creation endpoint in backend/tests/integration/test_teams.py
-- [ ] T047 [P] [US2] Integration test for adding player to roster in backend/tests/integration/test_teams.py
-- [ ] T048 [P] [US2] Integration test for designating starters in backend/tests/integration/test_teams.py
+- [X] T044 [P] [US2] Unit test for budget validation in backend/tests/unit/test_team_budget.py
+- [X] T045 [P] [US2] Unit test for roster size validation in backend/tests/unit/test_team_roster.py
+- [X] T046 [P] [US2] Integration test for team creation endpoint in backend/tests/integration/test_teams.py
+- [X] T047 [P] [US2] Integration test for adding player to roster in backend/tests/integration/test_teams.py
+- [X] T048 [P] [US2] Integration test for designating starters in backend/tests/integration/test_teams.py
 
 ### Implementation for User Story 2
 
-- [ ] T049 [P] [US2] Create Team model with validation in backend/src/models/team.py
-- [ ] T050 [US2] Implement TeamService with roster management logic in backend/src/services/team_service.py
-- [ ] T051 [US2] Implement POST /api/teams endpoint in backend/src/api/teams.py
-- [ ] T052 [US2] Implement GET /api/teams/{team_id} endpoint in backend/src/api/teams.py
-- [ ] T053 [US2] Implement POST /api/teams/{team_id}/players (add to roster) in backend/src/api/teams.py
-- [ ] T054 [US2] Implement DELETE /api/teams/{team_id}/players/{player_id} in backend/src/api/teams.py
-- [ ] T055 [US2] Implement PATCH /api/teams/{team_id}/starters in backend/src/api/teams.py
-- [ ] T056 [P] [US2] Create TeamCard component in frontend/src/components/team/TeamCard.tsx
-- [ ] T057 [P] [US2] Create TeamRoster component in frontend/src/components/team/TeamRoster.tsx
-- [ ] T058 [P] [US2] Create TeamBudget component in frontend/src/components/team/TeamBudget.tsx
-- [ ] T059 [P] [US2] Create TeamForm component in frontend/src/components/team/TeamForm.tsx
-- [ ] T060 [US2] Create TeamsPage with team creation and roster management in frontend/src/pages/TeamsPage.tsx
-- [ ] T061 [US2] Add team API methods to frontend/src/services/api.ts
-- [ ] T062 [P] [US2] Component test for TeamRoster in frontend/tests/components/TeamRoster.test.tsx
-- [ ] T063 [P] [US2] Component test for TeamBudget in frontend/tests/components/TeamBudget.test.tsx
+- [X] T049 [P] [US2] Create Team model with validation in backend/src/models/team.py
+- [X] T050 [US2] Implement TeamService with roster management logic in backend/src/services/team_service.py
+- [X] T051 [US2] Implement POST /api/teams endpoint in backend/src/api/teams.py
+- [X] T052 [US2] Implement GET /api/teams/{team_id} endpoint in backend/src/api/teams.py
+- [X] T053 [US2] Implement POST /api/teams/{team_id}/players (add to roster) in backend/src/api/teams.py
+- [X] T054 [US2] Implement DELETE /api/teams/{team_id}/players/{player_id} in backend/src/api/teams.py
+- [X] T055 [US2] Implement PATCH /api/teams/{team_id}/starters in backend/src/api/teams.py
+- [X] T056 [P] [US2] Create TeamCard component in frontend/src/components/team/TeamCard.tsx
+- [X] T057 [P] [US2] Create TeamRoster component in frontend/src/components/team/TeamRoster.tsx
+- [X] T058 [P] [US2] Create TeamBudget component in frontend/src/components/team/TeamBudget.tsx
+- [X] T059 [P] [US2] Create TeamForm component in frontend/src/components/team/TeamForm.tsx
+- [X] T060 [US2] Create TeamsPage with team creation and roster management in frontend/src/pages/TeamsPage.tsx
+- [X] T061 [US2] Add team API methods to frontend/src/services/api.ts
+- [X] T062 [P] [US2] Component test for TeamRoster in frontend/tests/components/TeamRoster.test.tsx
+- [X] T063 [P] [US2] Component test for TeamBudget in frontend/tests/components/TeamBudget.test.tsx
 
 **Checkpoint**: User Story 2 complete - can create teams, draft players, manage rosters with budget constraints
 

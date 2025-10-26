@@ -9,6 +9,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LeagueProvider } from './contexts/LeagueContext';
 import { LeaguePage } from './pages/LeaguePage';
 import { PlayersPage } from './pages/PlayersPage';
+import { TeamsPage } from './pages/TeamsPage';
 
 // Home page component
 const HomePage: React.FC = () => (
@@ -34,15 +35,6 @@ const HomePage: React.FC = () => (
           API Docs
         </a>
       </div>
-    </div>
-  </div>
-);
-
-const TeamsPage: React.FC = () => (
-  <div className="min-h-screen bg-gray-100 p-8">
-    <div className="max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Teams</h1>
-      <p className="text-gray-600">Team management will be implemented in User Story 2</p>
     </div>
   </div>
 );
@@ -93,7 +85,7 @@ const App: React.FC = () => {
             <Route path="/players" element={<PlayersPage />} />
             
             {/* Team routes */}
-            <Route path="/teams" element={<TeamsPage />} />
+            <Route path="/leagues/:leagueId/teams" element={<TeamsPage />} />
             <Route path="/teams/:teamId" element={<TeamsPage />} />
             
             {/* Game routes */}
