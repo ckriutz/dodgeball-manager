@@ -15,10 +15,11 @@
 
 import React, { useState, useMemo } from 'react';
 import { PlayerCard } from './PlayerCard';
-import type { Player } from '../../types';
+import type { Player, Team } from '../../types';
 
 interface PlayerListProps {
   players: Player[];
+  teams?: Team[];
   onPlayerClick?: (player: Player) => void;
   showStats?: boolean;
   loading?: boolean;
@@ -42,6 +43,7 @@ type ViewMode = 'grid' | 'list';
  */
 export const PlayerList: React.FC<PlayerListProps> = ({
   players,
+  teams = [],
   onPlayerClick,
   showStats = false,
   loading = false,
@@ -55,6 +57,13 @@ export const PlayerList: React.FC<PlayerListProps> = ({
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+
+  // Helper function to get team name
+  const getTeamName = (teamId: string | null): string => {
+    if (!teamId) return 'Free Agent';
+    const team = teams.find(t => t.id === teamId);
+    return team ? team.name : 'Unknown Team';
+  };
 
   // Filter and sort players
   const filteredAndSortedPlayers = useMemo(() => {
@@ -266,21 +275,108 @@ export const PlayerList: React.FC<PlayerListProps> = ({
             Clear Filters
           </button>
         </div>
+      ) : viewMode === 'list' ? (
+        /* Table List View */
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Assigned Team
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Age
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Value
+                  </th>
+                  {actionButton && (
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Action
+                    </th>
+                  )}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredAndSortedPlayers.map((player) => (
+                  <tr
+                    key={player.id}
+                    className={`hover:bg-gray-50 ${onPlayerClick ? 'cursor-pointer' : ''}`}
+                    onClick={() => onPlayerClick?.(player)}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10">
+                          <img
+                            className="h-10 w-10 rounded-full"
+                            src={player.avatar}
+                            alt={player.name}
+                          />
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">
+                            {player.name}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          player.team_id === null
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}
+                      >
+                        {getTeamName(player.team_id)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {player.age}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      ${player.value.toLocaleString()}
+                    </td>
+                    {actionButton && (
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            actionButton.onClick(player);
+                          }}
+                          disabled={actionButton.isDisabled?.(player) || false}
+                          className={`inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded ${
+                            actionButton.variant === 'success'
+                              ? 'text-green-700 bg-green-100 hover:bg-green-200'
+                              : actionButton.variant === 'danger'
+                              ? 'text-red-700 bg-red-100 hover:bg-red-200'
+                              : 'text-blue-700 bg-blue-100 hover:bg-blue-200'
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                          {actionButton.label}
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       ) : (
-        <div
-          className={
-            viewMode === 'grid'
-              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
-              : 'space-y-4'
-          }
-        >
+        /* Grid View */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredAndSortedPlayers.map((player) => (
             <PlayerCard
               key={player.id}
               player={player}
               onClick={onPlayerClick}
               showStats={showStats}
-              className={viewMode === 'list' ? 'w-full' : ''}
+              className=""
               actionButton={
                 actionButton
                   ? {

@@ -220,6 +220,13 @@ export const leagueApi = {
   getAwards: async (leagueId: string) => {
     return apiClient.get(`/leagues/${leagueId}/awards`);
   },
+
+  /**
+   * Get teams in a league
+   */
+  getTeams: async (leagueId: string) => {
+    return apiClient.get(`/leagues/${leagueId}/teams`);
+  },
 };
 
 // Player API methods

@@ -14,13 +14,20 @@ from fastapi import APIRouter, HTTPException, Query
 
 from ..models.league import League, LeagueCreate
 from ..models.player import Player
+from ..models.team import Team
 from ..services.league_service import LeagueService
+from ..services.team_service import TeamService
+from ..services.player_service import PlayerService
+from ..storage.memory_storage import MemoryStorage
 
 
 router = APIRouter(prefix="/api/leagues", tags=["leagues"])
 
-# Service instance (shared across requests)
-league_service = LeagueService()
+# Service instances (shared across requests)
+storage = MemoryStorage()
+player_service = PlayerService(storage)
+league_service = LeagueService(storage, player_service)
+team_service = TeamService(storage, player_service)
 
 
 @router.post("", response_model=League, status_code=201)
@@ -145,6 +152,36 @@ def list_players(
             free_agents_only=free_agents_only
         )
         return players
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/{league_id}/teams", response_model=List[Team])
+def list_teams(league_id: str) -> List[Team]:
+    """
+    Get all teams in a league.
+    
+    Args:
+        league_id: League UUID
+        
+    Returns:
+        List of teams in the league
+        
+    Raises:
+        HTTPException: 404 if league not found
+        
+    Example:
+        GET /api/leagues/123e4567-e89b-12d3-a456-426614174000/teams
+    """
+    try:
+        # Verify league exists
+        league = league_service.get_league(league_id)
+        if league is None:
+            raise ValueError(f"League {league_id} not found")
+        
+        # Get teams in league
+        teams = team_service.get_teams_by_league(league_id)
+        return teams
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 

@@ -16,7 +16,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PlayerList } from '../components/player/PlayerList';
 import { leagueApi } from '../services/api';
-import type { Player, League } from '../types';
+import type { Player, League, Team } from '../types';
 
 /**
  * PlayersPage component
@@ -28,6 +28,7 @@ export const PlayersPage: React.FC = () => {
   // State
   const [league, setLeague] = useState<League | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,6 +60,13 @@ export const PlayersPage: React.FC = () => {
           throw new Error(playersResponse.error.message);
         }
         setPlayers(playersResponse.data as Player[]);
+
+        // Load teams
+        const teamsResponse = await leagueApi.getTeams(leagueId);
+        if (teamsResponse.error) {
+          throw new Error(teamsResponse.error.message);
+        }
+        setTeams(teamsResponse.data as Team[]);
       } catch (err) {
         console.error('Failed to load data:', err);
         setError(
@@ -263,6 +271,7 @@ export const PlayersPage: React.FC = () => {
         {/* Player List */}
         <PlayerList
           players={players}
+          teams={teams}
           onPlayerClick={handlePlayerClick}
           showStats={true}
           loading={loading}

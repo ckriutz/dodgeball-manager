@@ -58,7 +58,7 @@ pip install -r requirements.txt
 pytest
 
 # Start development server
-uvicorn src.main:app --reload --port 8000
+c
 ```
 
 #### Frontend Setup

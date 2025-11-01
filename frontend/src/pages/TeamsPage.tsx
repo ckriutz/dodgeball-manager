@@ -97,32 +97,6 @@ export const TeamsPage: React.FC = () => {
   }, [leagueId]);
 
   /**
-   * Reload teams data
-   */
-  const reloadTeams = async () => {
-    if (!league) return;
-
-    try {
-      const teamsPromises = league.team_ids.map((teamId) =>
-        teamApi.getTeam(teamId)
-      );
-      const teamsResponses = await Promise.all(teamsPromises);
-      const teamsData = teamsResponses
-        .filter((r) => !r.error)
-        .map((r) => r.data as Team);
-      setTeams(teamsData);
-
-      // Reload players to update team assignments
-      const playersResponse = await leagueApi.getPlayers(league.id);
-      if (!playersResponse.error) {
-        setAllPlayers(playersResponse.data as Player[]);
-      }
-    } catch (err) {
-      console.error('Failed to reload teams:', err);
-    }
-  };
-
-  /**
    * Reload selected team
    */
   const reloadSelectedTeam = async () => {
@@ -165,12 +139,22 @@ export const TeamsPage: React.FC = () => {
         throw new Error(response.error.message);
       }
 
-      // Reload teams and league data
-      await reloadTeams();
+      // Reload league data first to get updated team_ids
       if (leagueId) {
         const leagueResponse = await leagueApi.getLeague(leagueId);
         if (!leagueResponse.error) {
-          setLeague(leagueResponse.data as League);
+          const updatedLeague = leagueResponse.data as League;
+          setLeague(updatedLeague);
+          
+          // Now reload teams with the updated league data
+          const teamsPromises = updatedLeague.team_ids.map((teamId) =>
+            teamApi.getTeam(teamId)
+          );
+          const teamsResponses = await Promise.all(teamsPromises);
+          const teamsData = teamsResponses
+            .filter((r) => !r.error)
+            .map((r) => r.data as Team);
+          setTeams(teamsData);
         }
       }
 

@@ -315,7 +315,13 @@ export const LeaguePage: React.FC = () => {
             {/* Back to Leagues Button */}
             <div>
               <button
-                onClick={() => navigate('/leagues')}
+                onClick={() => {
+                  setLeague(null);
+                  setPlayers([]);
+                  setError(null);
+                  setPlayersError(null);
+                  navigate('/leagues', { replace: true });
+                }}
                 className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
