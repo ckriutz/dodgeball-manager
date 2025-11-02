@@ -10,6 +10,7 @@ import { LeagueProvider } from './contexts/LeagueContext';
 import { LeaguePage } from './pages/LeaguePage';
 import { PlayersPage } from './pages/PlayersPage';
 import { TeamsPage } from './pages/TeamsPage';
+import { GamesPage } from './pages/GamesPage';
 
 // Home page component
 const HomePage: React.FC = () => (
@@ -35,15 +36,6 @@ const HomePage: React.FC = () => (
           API Docs
         </a>
       </div>
-    </div>
-  </div>
-);
-
-const GamesPage: React.FC = () => (
-  <div className="min-h-screen bg-gray-100 p-8">
-    <div className="max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Games</h1>
-      <p className="text-gray-600">Game simulation will be implemented in User Story 3</p>
     </div>
   </div>
 );
@@ -89,6 +81,7 @@ const App: React.FC = () => {
             <Route path="/teams/:teamId" element={<TeamsPage />} />
             
             {/* Game routes */}
+            <Route path="/leagues/:leagueId/games" element={<GamesPage />} />
             <Route path="/games" element={<GamesPage />} />
             <Route path="/games/:gameId" element={<GamesPage />} />
             

@@ -1,0 +1,63 @@
+<!-- avatar-outlined.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 700">
+  <style>
+    :root{
+      /* Easily change these two */
+      --bg:#EDEAFF;        /* background color */
+      --shirt:#2EC4B6;     /* shirt color */
+
+      /* Optional palette */
+      --skin:#F6C8A8;
+      --hair:#3B2D2F;
+      --line:#1E1E1E;
+      --white:#FFFFFF;
+      --shadow:rgba(0,0,0,0.12);
+    }
+    .line{ stroke:var(--line); stroke-width:4; stroke-linejoin:round; stroke-linecap:round; }
+  </style>
+
+  <!-- Background circle -->
+  <circle cx="350" cy="350" r="320" fill="var(--bg)"/>
+
+  <!-- Soft floor shadow -->
+  <ellipse cx="350" cy="560" rx="160" ry="26" fill="var(--shadow)"/>
+
+  <!-- Shoulders / torso -->
+  <path d="M180 520
+           C235 470, 465 470, 520 520
+           L520 640
+           C460 665, 240 665, 180 640 Z"
+        fill="var(--shirt)" class="line"/>
+
+  <!-- Collar (white ring) -->
+  <path d="M255 510
+           C265 480, 435 480, 445 510
+           C410 535, 290 535, 255 510 Z"
+        fill="var(--white)" class="line"/>
+
+  <!-- Neck -->
+  <rect x="310" y="430" width="80" height="85" rx="18" ry="18"
+        fill="var(--skin)" class="line"/>
+  <!-- Chin shadow -->
+  <ellipse cx="350" cy="438" rx="46" ry="14" fill="rgba(0,0,0,0.08)"/>
+
+  <!-- Ears -->
+  <ellipse cx="250" cy="330" rx="18" ry="28" fill="var(--skin)" class="line"/>
+  <ellipse cx="450" cy="330" rx="18" ry="28" fill="var(--skin)" class="line"/>
+
+  <!-- Head -->
+  <ellipse cx="350" cy="320" rx="115" ry="135" fill="var(--skin)" class="line"/>
+
+  <!-- Hair (asymmetric, stylized) -->
+  <path d="M265 315
+           C265 245, 315 210, 350 210
+           C420 210, 458 250, 460 312
+           C440 297, 420 292, 400 297
+           C410 265, 365 255, 330 265
+           C315 270, 295 285, 285 302
+           C278 309, 270 312, 265 315 Z"
+        fill="var(--hair)" class="line"/>
+
+  <!-- Minimal nose/face hints (subtle) -->
+  <path d="M350 370 C345 380, 355 380, 350 390" stroke="rgba(0,0,0,0.15)" stroke-width="4" fill="none"/>
+</svg>

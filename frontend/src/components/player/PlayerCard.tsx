@@ -108,11 +108,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           {/* Avatar */}
           <div className="relative">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl shadow-md">
-              {avatar == "avatar-1" ? (
-                <img src="/images/default_avatar.png" alt={name} className="w-full h-full rounded-full object-cover" />
-              ) : (
-                <img src={avatar} alt={name} className="w-full h-full rounded-full object-cover" />
-              )}
+              <img src={`/images/avatars/${avatar}.png`} alt={name} className="w-full h-full rounded-full object-cover" />
             </div>
             {is_starter && (
               <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center shadow-sm">

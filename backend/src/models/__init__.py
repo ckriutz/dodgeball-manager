@@ -10,8 +10,8 @@ from .player import (
     PlayerUpdate,
     PlayerSkills,
     PlayerStats,
-    Injury,
-    InjurySeverity,
+    Injury as PlayerInjury,  # Keep for backward compatibility
+    InjurySeverity as PlayerInjurySeverity,  # Keep for backward compatibility
 )
 
 from .league import (
@@ -26,6 +26,23 @@ from .league import (
     ScheduleCreateRequest,
 )
 
+from .game import (
+    Game,
+    GameCreate,
+    GameResponse,
+    GameSummary,
+    GameEvent,
+    GameEventType,
+    GameStatus,
+)
+
+from .injury import (
+    Injury,
+    InjuryResponse,
+    InjurySummary,
+    InjurySeverity,
+)
+
 __all__ = [
     # Player models
     'Player',
@@ -33,8 +50,8 @@ __all__ = [
     'PlayerUpdate',
     'PlayerSkills',
     'PlayerStats',
-    'Injury',
-    'InjurySeverity',
+    'PlayerInjury',
+    'PlayerInjurySeverity',
     # League models
     'League',
     'LeagueCreate',
@@ -45,4 +62,17 @@ __all__ = [
     'StandingsEntry',
     'ScheduleGame',
     'ScheduleCreateRequest',
+    # Game models
+    'Game',
+    'GameCreate',
+    'GameResponse',
+    'GameSummary',
+    'GameEvent',
+    'GameEventType',
+    'GameStatus',
+    # Injury models
+    'Injury',
+    'InjuryResponse',
+    'InjurySummary',
+    'InjurySeverity',
 ]

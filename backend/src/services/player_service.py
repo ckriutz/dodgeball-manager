@@ -12,6 +12,7 @@ References:
 - FR-004: Player value calculation
 """
 
+import random
 from typing import List, Optional
 from uuid import uuid4
 
@@ -90,7 +91,7 @@ class PlayerService:
         player_create = PlayerCreate(
             name=f"Player {number}",
             age=age,
-            avatar=f"avatar-1",  # 10 different avatar placeholders
+            avatar=f"avatar-{random.randint(1, 14)}",  # 14 different avatar placeholders
             skills=skills
         )
 

@@ -141,30 +141,30 @@
 
 ### Tests for User Story 3
 
-- [ ] T064 [P] [US3] Unit test for throw outcome calculation in backend/tests/unit/test_game_mechanics.py
-- [ ] T065 [P] [US3] Unit test for injury probability in backend/tests/unit/test_injury_system.py
-- [ ] T066 [P] [US3] Simulation test with deterministic seed in backend/tests/simulation/test_game_determinism.py
-- [ ] T067 [P] [US3] Simulation test for edge cases in backend/tests/simulation/test_game_edge_cases.py
-- [ ] T068 [P] [US3] Integration test for game simulation endpoint in backend/tests/integration/test_games.py
+- [X] T064 [P] [US3] Unit test for throw outcome calculation in backend/tests/unit/test_game_mechanics.py
+- [X] T065 [P] [US3] Unit test for injury probability in backend/tests/unit/test_injury_system.py
+- [X] T066 [P] [US3] Simulation test with deterministic seed in backend/tests/simulation/test_game_determinism.py
+- [X] T067 [P] [US3] Simulation test for edge cases in backend/tests/simulation/test_game_edge_cases.py
+- [X] T068 [P] [US3] Integration test for game simulation endpoint in backend/tests/integration/test_games.py
 
 ### Implementation for User Story 3
 
-- [ ] T069 [P] [US3] Create Game model in backend/src/models/game.py
-- [ ] T070 [P] [US3] Create Injury model in backend/src/models/injury.py
-- [ ] T071 [US3] Implement GameSimulator with turn-based combat logic in backend/src/services/game_simulator.py
-- [ ] T072 [US3] Implement injury system in backend/src/services/injury_service.py
-- [ ] T073 [US3] Implement stat tracking and update logic in backend/src/services/stats_service.py
-- [ ] T074 [US3] Implement POST /api/games (create and simulate) in backend/src/api/games.py
-- [ ] T075 [US3] Implement GET /api/games/{game_id} endpoint in backend/src/api/games.py
-- [ ] T076 [US3] Implement GET /api/games (list/history) endpoint in backend/src/api/games.py
-- [ ] T077 [P] [US3] Create GameSimulator component in frontend/src/components/game/GameSimulator.tsx
-- [ ] T078 [P] [US3] Create GameHistory component in frontend/src/components/game/GameHistory.tsx
-- [ ] T079 [P] [US3] Create GameStats component in frontend/src/components/game/GameStats.tsx
-- [ ] T080 [P] [US3] Create PlayerStats component in frontend/src/components/player/PlayerStats.tsx
-- [ ] T081 [US3] Create GamesPage with game simulation interface in frontend/src/pages/GamesPage.tsx
-- [ ] T082 [US3] Add game API methods to frontend/src/services/api.ts
-- [ ] T083 [P] [US3] Component test for GameSimulator in frontend/tests/components/GameSimulator.test.tsx
-- [ ] T084 [P] [US3] Component test for GameHistory in frontend/tests/components/GameHistory.test.tsx
+- [X] T069 [US3] Create Game model in backend/src/models/game.py
+- [X] T070 [US3] Create Injury model in backend/src/models/injury.py
+- [X] T071 [US3] Implement GameSimulator with turn-based combat logic in backend/src/services/game_simulator.py
+- [X] T072 [US3] Implement injury system in backend/src/services/injury_service.py
+- [X] T073 [US3] Implement stat tracking and update logic in backend/src/services/stats_service.py
+- [X] T074 [US3] Implement POST /api/games (create and simulate) in backend/src/api/games.py
+- [X] T075 [US3] Implement GET /api/games/{game_id} endpoint in backend/src/api/games.py
+- [X] T076 [US3] Implement GET /api/games (list/history) endpoint in backend/src/api/games.py
+- [X] T077 [P] [US3] Create GameSimulator component in frontend/src/components/game/GameSimulator.tsx
+- [X] T078 [P] [US3] Create GameHistory component in frontend/src/components/game/GameHistory.tsx
+- [X] T079 [P] [US3] Create GameStats component in frontend/src/components/game/GameStats.tsx
+- [X] T080 [P] [US3] Create PlayerStats component in frontend/src/components/player/PlayerStats.tsx
+- [X] T081 [US3] Create GamesPage with game simulation interface in frontend/src/pages/GamesPage.tsx
+- [X] T082 [US3] Add game API methods to frontend/src/services/api.ts
+- [X] T083 [P] [US3] Component test for GameSimulator in frontend/tests/components/GameSimulator.test.tsx
+- [X] T084 [P] [US3] Component test for GameHistory in frontend/tests/components/GameHistory.test.tsx
 
 **Checkpoint**: User Story 3 complete - can simulate games, view play-by-play, track stats
 
