@@ -3,7 +3,7 @@
  * 
  * Displays and manages a team's roster:
  * - Shows all players on the team
- * - Allows designating/removing starters
+ * - Allows designating/removing starters with quick action buttons
  * - Supports removing players from roster
  * - Shows roster size and starter count constraints
  * - Displays budget impact of roster changes
@@ -11,7 +11,7 @@
  * Used in team management interfaces.
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import type { Team, Player } from '../../types';
 import { PlayerCard } from '../player/PlayerCard';
 
@@ -37,14 +37,11 @@ export const TeamRoster: React.FC<TeamRosterProps> = ({
   readonly = false,
   className = '',
 }) => {
-  const [selectedPlayers, setSelectedPlayers] = useState<Set<string>>(
-    new Set(team.starter_ids)
-  );
-
   const rosterSize = team.player_ids.length;
   const starterCount = team.starter_ids.length;
   const canRemovePlayer = rosterSize > 8;
   const needsStarters = starterCount < 5;
+  const startersFull = starterCount >= 5;
 
   // Get players on this team
   const rosterPlayers = players.filter((p) => team.player_ids.includes(p.id));
@@ -52,29 +49,23 @@ export const TeamRoster: React.FC<TeamRosterProps> = ({
   const bench = rosterPlayers.filter((p) => !team.starter_ids.includes(p.id));
 
   /**
-   * Toggle player selection for starter designation
+   * Make a player a starter
    */
-  const togglePlayerSelection = (playerId: string) => {
-    if (readonly) return;
+  const handleMakeStarter = (playerId: string) => {
+    if (readonly || !onSetStarters || startersFull) return;
 
-    const newSelected = new Set(selectedPlayers);
-    if (newSelected.has(playerId)) {
-      newSelected.delete(playerId);
-    } else {
-      if (newSelected.size < 5) {
-        newSelected.add(playerId);
-      }
-    }
-    setSelectedPlayers(newSelected);
+    const newStarters = [...team.starter_ids, playerId];
+    onSetStarters(newStarters);
   };
 
   /**
-   * Save starter selections
+   * Move a player to bench
    */
-  const handleSaveStarters = () => {
-    if (onSetStarters && selectedPlayers.size === 5) {
-      onSetStarters(Array.from(selectedPlayers));
-    }
+  const handleBenchPlayer = (playerId: string) => {
+    if (readonly || !onSetStarters) return;
+
+    const newStarters = team.starter_ids.filter(id => id !== playerId);
+    onSetStarters(newStarters);
   };
 
   /**
@@ -83,25 +74,8 @@ export const TeamRoster: React.FC<TeamRosterProps> = ({
   const handleRemovePlayer = (playerId: string) => {
     if (readonly || !onRemovePlayer || !canRemovePlayer) return;
 
-    // Remove from starters if they were a starter
-    if (selectedPlayers.has(playerId)) {
-      const newSelected = new Set(selectedPlayers);
-      newSelected.delete(playerId);
-      setSelectedPlayers(newSelected);
-    }
-
     onRemovePlayer(playerId);
   };
-
-  /**
-   * Reset selections to current starters
-   */
-  const handleResetSelections = () => {
-    setSelectedPlayers(new Set(team.starter_ids));
-  };
-
-  const hasChanges = selectedPlayers.size !== starterCount || 
-    !Array.from(selectedPlayers).every(id => team.starter_ids.includes(id));
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -119,48 +93,6 @@ export const TeamRoster: React.FC<TeamRosterProps> = ({
           </div>
         )}
       </div>
-
-      {/* Starter Selection Controls */}
-      {!readonly && onSetStarters && (
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h4 className="font-semibold text-blue-900">
-                Designate Starters ({selectedPlayers.size}/5)
-              </h4>
-              <p className="text-sm text-blue-700">
-                Click players below to select/deselect as starters
-              </p>
-            </div>
-            <div className="flex gap-2">
-              {hasChanges && (
-                <button
-                  onClick={handleResetSelections}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-                >
-                  Reset
-                </button>
-              )}
-              <button
-                onClick={handleSaveStarters}
-                disabled={selectedPlayers.size !== 5}
-                className={`px-4 py-1.5 text-sm font-medium rounded transition-colors ${
-                  selectedPlayers.size === 5
-                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                Save Starters
-              </button>
-            </div>
-          </div>
-          {selectedPlayers.size > 5 && (
-            <div className="text-sm text-red-600">
-              Too many players selected. Maximum 5 starters allowed.
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Empty Roster */}
       {rosterSize === 0 && (
@@ -197,25 +129,35 @@ export const TeamRoster: React.FC<TeamRosterProps> = ({
               <div key={player.id} className="relative">
                 <PlayerCard
                   player={player}
-                  onClick={() => !readonly && togglePlayerSelection(player.id)}
                   showStats={false}
-                  className={
-                    !readonly && selectedPlayers.has(player.id)
-                      ? 'ring-2 ring-blue-500'
-                      : ''
-                  }
                 />
-                {!readonly && onRemovePlayer && canRemovePlayer && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemovePlayer(player.id);
-                    }}
-                    className="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors flex items-center justify-center"
-                    title="Remove from roster"
-                  >
-                    ×
-                  </button>
+                {!readonly && (
+                  <div className="absolute top-2 right-2 flex gap-1">
+                    {onSetStarters && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleBenchPlayer(player.id);
+                        }}
+                        className="px-3 py-1.5 text-xs font-medium bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors shadow-md"
+                        title="Move to bench"
+                      >
+                        Bench
+                      </button>
+                    )}
+                    {onRemovePlayer && canRemovePlayer && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemovePlayer(player.id);
+                        }}
+                        className="w-7 h-7 bg-red-600 text-white rounded hover:bg-red-700 transition-colors flex items-center justify-center shadow-md"
+                        title="Remove from roster"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             ))}
@@ -239,25 +181,40 @@ export const TeamRoster: React.FC<TeamRosterProps> = ({
               <div key={player.id} className="relative">
                 <PlayerCard
                   player={player}
-                  onClick={() => !readonly && togglePlayerSelection(player.id)}
                   showStats={false}
-                  className={
-                    !readonly && selectedPlayers.has(player.id)
-                      ? 'ring-2 ring-blue-500'
-                      : ''
-                  }
                 />
-                {!readonly && onRemovePlayer && canRemovePlayer && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemovePlayer(player.id);
-                    }}
-                    className="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors flex items-center justify-center"
-                    title="Remove from roster"
-                  >
-                    ×
-                  </button>
+                {!readonly && (
+                  <div className="absolute top-2 right-2 flex gap-1">
+                    {onSetStarters && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMakeStarter(player.id);
+                        }}
+                        disabled={startersFull}
+                        className={`px-3 py-1.5 text-xs font-medium rounded transition-colors shadow-md ${
+                          startersFull
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
+                        title={startersFull ? 'Starting lineup is full (5/5)' : 'Make starter'}
+                      >
+                        Make Starter
+                      </button>
+                    )}
+                    {onRemovePlayer && canRemovePlayer && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemovePlayer(player.id);
+                        }}
+                        className="w-7 h-7 bg-red-600 text-white rounded hover:bg-red-700 transition-colors flex items-center justify-center shadow-md"
+                        title="Remove from roster"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             ))}

@@ -84,7 +84,7 @@ def sample_team_data() -> Dict:
         "owner_name": "Test Owner",
         "league_id": None,
         "budget_spent": 0,
-        "budget_remaining": 100000,
+        "budget_remaining": 15000,
         "roster": [],
         "wins": 0,
         "losses": 0
@@ -475,6 +475,6 @@ def budget_exhausted_team(create_team):
     """
     return create_team(
         name="Broke Team",
-        budget_spent=100000,
+        budget_spent=15000,
         budget_remaining=0
     )

@@ -36,6 +36,11 @@ const calculateGameStats = (game: Game) => {
     eliminations: 0,
   };
 
+  // Guard: Check if events exist
+  if (!game.events) {
+    return { team1Stats, team2Stats };
+  }
+
   // Count events per team
   game.events.forEach(event => {
     const throwerIsTeam1 = game.team1_starters.includes(event.thrower_id || '');
@@ -116,6 +121,21 @@ export const GameStats: React.FC<GameStatsProps> = ({
   team2Name = 'Team 2',
   className = '',
 }) => {
+  // Guard: Check if events are loaded
+  if (!game.events) {
+    return (
+      <div className={`bg-yellow-50 border border-yellow-200 rounded-lg p-6 ${className}`}>
+        <div className="text-center">
+          <div className="text-4xl mb-2">⏳</div>
+          <h3 className="text-lg font-semibold text-yellow-700 mb-1">Loading Game Details...</h3>
+          <p className="text-sm text-yellow-600">
+            Game statistics are being loaded.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const { team1Stats, team2Stats } = calculateGameStats(game);
   
   const team1Accuracy = calculateAccuracy(team1Stats.hits, team1Stats.throws);
@@ -271,7 +291,7 @@ export const GameStats: React.FC<GameStatsProps> = ({
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
               <div className="text-gray-500 text-xs mb-1">Total Events</div>
-              <div className="font-semibold text-gray-900">{game.events.length}</div>
+              <div className="font-semibold text-gray-900">{game.events?.length || 0}</div>
             </div>
           </div>
         </div>

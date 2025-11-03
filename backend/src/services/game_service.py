@@ -70,6 +70,10 @@ class GameService:
         Raises:
             ValueError: If teams don't exist, aren't in league, or don't have starters
         """
+        # Validate teams are different
+        if team1_id == team2_id:
+            raise ValueError("Cannot simulate a game between the same team")
+        
         # Validate teams exist
         team1 = self.team_service.get_team(team1_id)
         team2 = self.team_service.get_team(team2_id)

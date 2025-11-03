@@ -22,18 +22,18 @@ class Team(BaseModel):
     """
     Team entity representing a fantasy dodgeball team.
     
-    A team has a budget ($100,000), manages a roster of 8-12 players,
+    A team has a budget ($15,000), manages a roster of 8-12 players,
     designates 5 starters, and tracks wins/losses.
     """
     id: str = Field(default_factory=lambda: str(uuid4()))
     name: str = Field(min_length=1, description="Team name")
     description: str = Field(default="", description="Team description")
-    logo: str = Field(default="logo-placeholder", description="Logo identifier")
+    logo: str = Field(default="team-avatar-1.png", description="Team avatar image filename")
     budget: int = Field(
-        default=100000,
+        default=15000,
         ge=0,
-        le=100000,
-        description="Remaining budget in dollars (0-100,000)"
+        le=15000,
+        description="Remaining budget in dollars (0-15,000)"
     )
     player_ids: List[str] = Field(
         default_factory=list,
@@ -199,16 +199,19 @@ class Team(BaseModel):
         """
         Designate the starting lineup (FR-013).
         
+        Allows setting 0-5 starters during roster building.
+        Exactly 5 starters required for game simulation.
+        
         Args:
-            starter_ids: List of exactly 5 player IDs
+            starter_ids: List of up to 5 player IDs
             
         Raises:
-            ValueError: If not exactly 5 starters, duplicates exist,
+            ValueError: If more than 5 starters, duplicates exist,
                        or starters not on roster
         """
-        if len(starter_ids) != 5:
+        if len(starter_ids) > 5:
             raise ValueError(
-                f"Exactly 5 starters required (FR-013), got {len(starter_ids)}"
+                f"Maximum 5 starters allowed, got {len(starter_ids)}"
             )
         
         # Check for duplicates
@@ -307,37 +310,32 @@ class Team(BaseModel):
         """
         return sum(player_values.get(pid, 0) for pid in self.player_ids)
 
-    def validate_budget_integrity(self, player_values: dict) -> bool:
+    def validate_budget_integrity(self) -> bool:
         """
-        Validate that budget integrity is maintained.
+        Verify that spent + remaining equals initial budget.
         
-        Formula: spent + remaining = 100,000
+        Formula: spent + remaining = 15,000
         
-        Args:
-            player_values: Dict mapping player_id to player value
-            
         Returns:
-            True if budget integrity is valid
+            True if budget integrity is maintained, False otherwise
         """
-        spent = self.calculate_spent_budget(player_values)
-        return spent + self.budget == 100000
+        spent = self.get_spent_budget()
+        return spent + self.budget == 15000
 
     class Config:
         """Pydantic model configuration."""
         json_schema_extra = {
             "example": {
                 "id": "123e4567-e89b-12d3-a456-426614174000",
-                "name": "Thunder Dodgers",
-                "description": "Fast and furious team",
-                "logo": "logo-placeholder-1",
-                "budget": 100000,
+                "name": "Brooklyn Dodgers",
+                "description": "The best dodgeball team in Brooklyn",
+                "logo": "team-avatar-1.png",
+                "league_id": "987fcdeb-51a2-43d7-b123-456789abcdef",
+                "budget": 15000,
                 "player_ids": [],
                 "starter_ids": [],
                 "wins": 0,
-                "losses": 0,
-                "awards": [],
-                "league_id": "987e6543-e21b-43d3-a456-426614174000",
-                "created_at": "2025-10-25T12:00:00Z"
+                "losses": 0
             }
         }
 
@@ -346,7 +344,7 @@ class TeamCreate(BaseModel):
     """Schema for creating a new team."""
     name: str = Field(min_length=1, description="Team name")
     description: Optional[str] = Field(default="", description="Team description")
-    logo: Optional[str] = Field(default="logo-placeholder", description="Logo identifier")
+    logo: Optional[str] = Field(default="team-avatar-1.png", description="Team avatar image filename")
     league_id: str = Field(description="League ID this team belongs to")
 
     def to_team(self) -> Team:
@@ -354,13 +352,13 @@ class TeamCreate(BaseModel):
         Convert creation schema to Team entity.
         
         Returns:
-            New Team instance with $100,000 budget and empty roster
+            New Team instance with $15,000 budget and empty roster
         """
         return Team(
             name=self.name,
             description=self.description or "",
-            logo=self.logo or "logo-placeholder",
-            budget=100000,
+            logo=self.logo or "team-avatar-1.png",
+            budget=15000,
             player_ids=[],
             starter_ids=[],
             wins=0,
@@ -445,8 +443,7 @@ class AddPlayerRequest(BaseModel):
 class SetStartersRequest(BaseModel):
     """Request schema for setting team starters."""
     starter_ids: List[str] = Field(
-        description="List of exactly 5 player IDs for starting lineup",
-        min_length=5,
+        description="List of up to 5 player IDs for starting lineup",
         max_length=5
     )
 

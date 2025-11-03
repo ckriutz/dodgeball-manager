@@ -22,6 +22,7 @@ from .utils import (
     distribute_skill_points,
     generate_random_age,
     calculate_player_value,
+    get_random_player_name,
 )
 
 
@@ -49,14 +50,18 @@ class PlayerService:
             List of generated Player instances
             
         Raises:
-            ValueError: If count is not between 50-100
+            ValueError: If count is not between 1-100
         """
-        if not (50 <= count <= 100):
-            raise ValueError(f"Player count must be between 50-100, got {count}")
+        if not (1 <= count <= 100):
+            raise ValueError(f"Player count must be between 1-100, got {count}")
+
+        # Get existing player count to continue numbering
+        existing_players = self.get_players_by_league(league_id) if league_id else []
+        start_number = len(existing_players) + 1
 
         players = []
         for i in range(count):
-            player = self._generate_single_player(i + 1)
+            player = self._generate_single_player(start_number + i, league_id=league_id)
             # Storage creates the ID, so we need to store first then recreate with correct ID
             player_dict = player.model_dump()
             player_id = self.storage.create_player(player_dict)
@@ -67,12 +72,13 @@ class PlayerService:
 
         return players
 
-    def _generate_single_player(self, number: int) -> Player:
+    def _generate_single_player(self, number: int, league_id: Optional[str] = None) -> Player:
         """
         Generate a single player with random attributes.
         
         Args:
             number: Player number for naming
+            league_id: Optional league ID to associate player with
             
         Returns:
             Generated Player instance
@@ -87,12 +93,16 @@ class PlayerService:
         # Calculate player value (FR-004)
         value = calculate_player_value(skill_values, age)
 
+        # Get random unique player name
+        name = get_random_player_name()
+
         # Create player
         player_create = PlayerCreate(
-            name=f"Player {number}",
+            name=name,
             age=age,
             avatar=f"avatar-{random.randint(1, 14)}",  # 14 different avatar placeholders
-            skills=skills
+            skills=skills,
+            league_id=league_id
         )
 
         return player_create.to_player()
@@ -127,13 +137,17 @@ class PlayerService:
             free_agents_only: If True, only return players without teams
             
         Returns:
-            List of Player instances
+            List of Player instances in the specified league
         """
         all_players = self.storage.list_players()
 
         players = []
         for player_data in all_players:
             player = Player(**player_data)
+
+            # Filter by league_id - CRITICAL: only return players from this league
+            if player.league_id != league_id:
+                continue
 
             # Filter by free agent status if requested
             if free_agents_only and not player.is_free_agent():

@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import type { Team, Game, CreateGameRequest } from '../../types';
 
 interface GameSimulatorProps {
+  leagueId: string;
   teams: Team[];
   onSimulate: (request: CreateGameRequest) => Promise<Game>;
   onGameComplete?: (game: Game) => void;
@@ -19,6 +20,7 @@ interface GameSimulatorProps {
  * GameSimulator component - Clean interface for game simulation
  */
 export const GameSimulator: React.FC<GameSimulatorProps> = ({
+  leagueId,
   teams,
   onSimulate,
   onGameComplete,
@@ -85,6 +87,7 @@ export const GameSimulator: React.FC<GameSimulatorProps> = ({
 
     try {
       const request: CreateGameRequest = {
+        league_id: leagueId,
         team1_id: team1Id,
         team2_id: team2Id,
         seed: seed ? parseInt(seed, 10) : undefined,

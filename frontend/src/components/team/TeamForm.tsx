@@ -4,8 +4,8 @@
  * Form for creating a new team:
  * - Team name (required)
  * - Description (optional)
- * - Logo (optional)
- * - League selection (required)
+ * - Logo selection from available avatars (required)
+ * - League is implicit from context (no dropdown)
  * - Form validation
  * - Error handling
  * 
@@ -13,10 +13,10 @@
  */
 
 import React, { useState } from 'react';
-import type { CreateTeamRequest, League } from '../../types';
+import type { CreateTeamRequest } from '../../types';
 
 interface TeamFormProps {
-  leagues: League[];
+  leagueId: string;
   onSubmit: (teamData: CreateTeamRequest) => void;
   onCancel?: () => void;
   isLoading?: boolean;
@@ -28,21 +28,32 @@ interface FormData {
   name: string;
   description: string;
   logo: string;
-  league_id: string;
 }
 
 interface FormErrors {
   name?: string;
   description?: string;
-  league_id?: string;
+  logo?: string;
   general?: string;
 }
+
+// Available team avatars
+const TEAM_AVATARS = [
+  'team-avatar-1.png',
+  'team-avatar-2.png',
+  'team-avatar-3.png',
+  'team-avatar-4.png',
+  'team-avatar-5.png',
+  'team-avatar-6.png',
+  'team-avatar-7.png',
+  'team-avatar-8.png',
+];
 
 /**
  * TeamForm component
  */
 export const TeamForm: React.FC<TeamFormProps> = ({
-  leagues,
+  leagueId,
   onSubmit,
   onCancel,
   isLoading = false,
@@ -52,8 +63,7 @@ export const TeamForm: React.FC<TeamFormProps> = ({
   const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',
-    logo: '',
-    league_id: leagues.length === 1 ? leagues[0].id : '',
+    logo: TEAM_AVATARS[0], // Default to first avatar
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -76,15 +86,15 @@ export const TeamForm: React.FC<TeamFormProps> = ({
         }
         break;
       
-      case 'league_id':
-        if (!value) {
-          return 'Please select a league';
-        }
-        break;
-      
       case 'description':
         if (value && value.length > 200) {
           return 'Description must be less than 200 characters';
+        }
+        break;
+
+      case 'logo':
+        if (!value) {
+          return 'Please select a team avatar';
         }
         break;
     }
@@ -100,8 +110,8 @@ export const TeamForm: React.FC<TeamFormProps> = ({
     const nameError = validateField('name', formData.name);
     if (nameError) newErrors.name = nameError;
     
-    const leagueError = validateField('league_id', formData.league_id);
-    if (leagueError) newErrors.league_id = leagueError;
+    const logoError = validateField('logo', formData.logo);
+    if (logoError) newErrors.logo = logoError;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -141,7 +151,7 @@ export const TeamForm: React.FC<TeamFormProps> = ({
     e.preventDefault();
     
     // Mark all fields as touched
-    setTouched(new Set(['name', 'league_id']));
+    setTouched(new Set(['name', 'logo']));
     
     if (!validateForm()) {
       return;
@@ -150,16 +160,16 @@ export const TeamForm: React.FC<TeamFormProps> = ({
     // Create the request object
     const teamRequest: CreateTeamRequest = {
       name: formData.name.trim(),
-      league_id: formData.league_id,
+      league_id: leagueId,
+      logo: formData.logo,
       ...(formData.description && { description: formData.description.trim() }),
-      ...(formData.logo && { logo: formData.logo.trim() }),
     };
 
     onSubmit(teamRequest);
   };
 
   const showNameError = touched.has('name') && errors.name;
-  const showLeagueError = touched.has('league_id') && errors.league_id;
+  const showLogoError = touched.has('logo') && errors.logo;
 
   return (
     <form onSubmit={handleSubmit} className={`bg-white rounded-lg shadow-md border border-gray-200 p-6 ${className}`}>
@@ -206,38 +216,50 @@ export const TeamForm: React.FC<TeamFormProps> = ({
         </p>
       </div>
 
-      {/* League Selection */}
+      {/* Team Logo Selection */}
       <div className="mb-4">
-        <label htmlFor="league_id" className="block text-sm font-medium text-gray-700 mb-2">
-          League <span className="text-red-500">*</span>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Team Avatar <span className="text-red-500">*</span>
         </label>
-        <select
-          id="league_id"
-          name="league_id"
-          value={formData.league_id}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          disabled={isLoading || leagues.length === 0}
-          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
-            showLeagueError
-              ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-              : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-          } ${isLoading || leagues.length === 0 ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`}
-        >
-          <option value="">Select a league</option>
-          {leagues.map((league) => (
-            <option key={league.id} value={league.id}>
-              {league.name} ({league.team_ids.length} teams)
-            </option>
+        <div className="grid grid-cols-4 gap-3">
+          {TEAM_AVATARS.map((avatar) => (
+            <button
+              key={avatar}
+              type="button"
+              onClick={() => {
+                setFormData((prev) => ({ ...prev, logo: avatar }));
+                if (errors.logo) {
+                  setErrors((prev) => ({ ...prev, logo: undefined }));
+                }
+              }}
+              disabled={isLoading}
+              className={`relative aspect-square rounded-lg border-2 transition-all duration-200 overflow-hidden ${
+                formData.logo === avatar
+                  ? 'border-blue-500 ring-2 ring-blue-200'
+                  : 'border-gray-300 hover:border-blue-400'
+              } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+              <img
+                src={`/images/team_avatars/${avatar}`}
+                alt={`Team avatar ${avatar}`}
+                className="w-full h-full object-cover"
+              />
+              {formData.logo === avatar && (
+                <div className="absolute top-1 right-1 bg-blue-500 text-white rounded-full p-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+              )}
+            </button>
           ))}
-        </select>
-        {showLeagueError && (
-          <p className="mt-1 text-sm text-red-600">{errors.league_id}</p>
-        )}
-        {leagues.length === 0 && (
-          <p className="mt-1 text-sm text-yellow-600">
-            ⚠️ No leagues available. Create a league first.
-          </p>
+        </div>
+        {showLogoError && (
+          <p className="mt-1 text-sm text-red-600">{errors.logo}</p>
         )}
       </div>
 
@@ -269,34 +291,11 @@ export const TeamForm: React.FC<TeamFormProps> = ({
         </p>
       </div>
 
-      {/* Logo URL */}
-      <div className="mb-6">
-        <label htmlFor="logo" className="block text-sm font-medium text-gray-700 mb-2">
-          Logo URL <span className="text-gray-400 text-xs">(optional)</span>
-        </label>
-        <input
-          type="url"
-          id="logo"
-          name="logo"
-          value={formData.logo}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          disabled={isLoading}
-          placeholder="https://example.com/logo.png"
-          className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-            isLoading ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
-          }`}
-        />
-        <p className="mt-1 text-xs text-gray-500">
-          Enter a URL to an image for your team logo
-        </p>
-      </div>
-
       {/* Info Box */}
       <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <h4 className="text-sm font-semibold text-blue-900 mb-2">Team Setup</h4>
         <ul className="text-sm text-blue-800 space-y-1">
-          <li>• Teams start with a $100,000 budget</li>
+          <li>• Teams start with a $15,000 budget</li>
           <li>• Draft 8-12 players from the free agent pool</li>
           <li>• Designate exactly 5 starters before competing</li>
           <li>• Player values range from $1,000 to $50,000</li>
@@ -317,7 +316,7 @@ export const TeamForm: React.FC<TeamFormProps> = ({
         )}
         <button
           type="submit"
-          disabled={isLoading || leagues.length === 0}
+          disabled={isLoading}
           className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isLoading ? (

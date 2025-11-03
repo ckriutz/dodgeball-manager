@@ -32,7 +32,7 @@ class TestTeamBudgetInitialization:
     def test_new_team_starts_with_full_budget(self):
         """Test that a new team has $100,000 budget."""
         # This test will fail until Team model is implemented
-        # Expected: New team should have budget = 100000
+        # Expected: New team should have budget = 15000
         # TODO: Implement after T049 (Create Team model)
         pytest.skip("Skipping until Team model is implemented (T049)")
     
@@ -45,7 +45,7 @@ class TestTeamBudgetInitialization:
     def test_budget_remaining_equals_initial_budget(self):
         """Test that initial remaining budget equals starting budget."""
         # This test will fail until Team model is implemented
-        # Expected: budget - spent = 100000 - 0 = 100000
+        # Expected: budget - spent = 15000 - 0 = 15000
         pytest.skip("Skipping until Team model is implemented (T049)")
 
 
@@ -59,11 +59,11 @@ class TestBudgetCalculation:
         
         # Act
         spent = sum(roster_values)
-        remaining = 100000 - spent
+        remaining = 15000 - spent
         
         # Assert
         assert spent == 0
-        assert remaining == 100000
+        assert remaining == 15000
     
     def test_budget_calculation_with_one_player(self):
         """Test budget calculation with single player on roster."""
@@ -72,7 +72,7 @@ class TestBudgetCalculation:
         
         # Act
         spent = sum(roster_values)
-        remaining = 100000 - spent
+        remaining = 15000 - spent
         
         # Assert
         assert spent == 1000
@@ -85,7 +85,7 @@ class TestBudgetCalculation:
         
         # Act
         spent = sum(roster_values)
-        remaining = 100000 - spent
+        remaining = 15000 - spent
         
         # Assert
         assert spent == 6500
@@ -98,7 +98,7 @@ class TestBudgetCalculation:
         
         # Act
         spent = sum(roster_values)
-        remaining = 100000 - spent
+        remaining = 15000 - spent
         
         # Assert
         assert spent == 12000
@@ -119,11 +119,11 @@ class TestBudgetCalculation:
         for roster_values in test_cases:
             # Act
             spent = sum(roster_values)
-            remaining = 100000 - spent
+            remaining = 15000 - spent
             
             # Assert: Budget integrity maintained
-            assert spent + remaining == 100000, \
-                f"Budget integrity violated: {spent} + {remaining} != 100000"
+            assert spent + remaining == 15000, \
+                f"Budget integrity violated: {spent} + {remaining} != 15000"
 
 
 class TestBudgetValidation:
@@ -220,7 +220,7 @@ class TestBudgetUpdateAfterRosterChange:
     def test_budget_decreases_after_adding_player(self):
         """Test that budget decreases when player is added."""
         # Arrange
-        initial_remaining = 100000
+        initial_remaining = 15000
         player_value = 1500
         
         # Act
@@ -263,14 +263,14 @@ class TestBudgetUpdateAfterRosterChange:
         # Arrange
         roster_values = [1000, 1500, 2000, 1200]
         spent = sum(roster_values)
-        remaining = 100000 - spent
+        remaining = 15000 - spent
         
         # Act: Release all players
         refund = spent
         new_remaining = remaining + refund
         
         # Assert
-        assert new_remaining == 100000
+        assert new_remaining == 15000
 
 
 class TestBudgetEdgeCases:
@@ -283,10 +283,10 @@ class TestBudgetEdgeCases:
         
         # Act
         spent = sum(roster_values)
-        remaining = 100000 - spent
+        remaining = 15000 - spent
         
         # Assert
-        assert spent == 100000
+        assert spent == 15000
         assert remaining == 0
     
     def test_high_value_player_within_budget(self):
@@ -304,7 +304,7 @@ class TestBudgetEdgeCases:
     def test_multiple_budget_validations(self):
         """Test sequential budget validations for multiple players."""
         # Arrange
-        budget = 100000
+        budget = 15000
         players_to_add = [
             ("Player 1", 20000, True),   # Can afford
             ("Player 2", 30000, True),   # Can afford (50k spent, 50k left)
@@ -355,12 +355,12 @@ class TestBudgetEdgeCases:
         
         # Act
         spent = sum(roster_values)
-        remaining = 100000 - spent
+        remaining = 15000 - spent
         
         # Assert
         assert spent == 19000
         assert remaining == 81000
-        assert spent + remaining == 100000
+        assert spent + remaining == 15000
 
 
 class TestBudgetIntegrityValidation:
@@ -372,17 +372,17 @@ class TestBudgetIntegrityValidation:
         # This is a critical invariant that must always be true
         
         test_scenarios = [
-            (0, 100000),        # No players
+            (0, 15000),        # No players
             (1000, 99000),      # One player
             (50000, 50000),     # Half budget
             (99999, 1),         # Almost full
-            (100000, 0),        # Full budget
+            (15000, 0),        # Full budget
         ]
         
         for spent, remaining in test_scenarios:
             # Assert
-            assert spent + remaining == 100000, \
-                f"Integrity violated: {spent} + {remaining} != 100000"
+            assert spent + remaining == 15000, \
+                f"Integrity violated: {spent} + {remaining} != 15000"
             assert spent >= 0, "Spent cannot be negative"
             assert remaining >= 0, "Remaining cannot be negative"
     
@@ -401,7 +401,7 @@ class TestBudgetIntegrityValidation:
     def test_remaining_budget_derived_correctly(self):
         """Test that remaining budget is derived from initial - spent."""
         # Arrange
-        initial_budget = 100000
+        initial_budget = 15000
         roster_values = [1000, 2000, 3000]
         
         # Act
@@ -420,7 +420,7 @@ class TestBudgetIntegrityValidation:
         # Arrange
         roster_values = [1000, 2000]
         correct_spent = sum(roster_values)
-        correct_remaining = 100000 - correct_spent
+        correct_remaining = 15000 - correct_spent
         
         # Assert: These are the only valid values
         assert correct_spent == 3000
@@ -432,7 +432,7 @@ class TestBudgetIntegrityValidation:
         
         # This should never be allowed:
         assert invalid_spent != sum(roster_values)
-        assert invalid_spent + invalid_remaining != 100000
+        assert invalid_spent + invalid_remaining != 15000
 
 
 class TestBudgetValidationHelpers:

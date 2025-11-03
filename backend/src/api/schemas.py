@@ -69,14 +69,14 @@ class Player(BaseSchema):
     is_starter: bool = Field(default=False, description="Whether designated as starter")
 
 
-# Team schemas
+# Team types
 class Team(BaseSchema):
     """Team response schema."""
     id: UUID = Field(description="Unique identifier")
     name: str = Field(description="Team name")
     description: str = Field(description="Team description")
-    logo: str = Field(description="Logo URL/identifier")
-    budget: int = Field(ge=0, le=100000, description="Remaining budget in dollars")
+    logo: str = Field(description="Team avatar image filename")
+    budget: int = Field(ge=0, le=15000, description="Remaining budget in dollars")
     player_ids: List[UUID] = Field(default_factory=list, max_length=12, description="Roster player IDs")
     starter_ids: List[UUID] = Field(default_factory=list, max_length=5, description="Designated starter IDs")
     wins: int = Field(default=0, ge=0, description="Number of wins")
@@ -161,7 +161,7 @@ class CreateTeamRequest(BaseSchema):
     """Team creation request schema."""
     name: str = Field(description="Team name")
     description: Optional[str] = Field(default="", description="Team description")
-    logo: Optional[str] = Field(default="default-logo", description="Logo URL/identifier")
+    logo: Optional[str] = Field(default="team-avatar-1.png", description="Team avatar image filename")
     league_id: UUID = Field(description="Parent league ID")
 
 

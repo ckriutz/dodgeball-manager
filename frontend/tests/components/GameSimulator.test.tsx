@@ -102,6 +102,8 @@ describe('GameSimulator', () => {
     it('renders the component title', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -113,6 +115,7 @@ describe('GameSimulator', () => {
     it('displays description text', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -124,6 +127,7 @@ describe('GameSimulator', () => {
     it('shows team selection dropdowns', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -136,6 +140,7 @@ describe('GameSimulator', () => {
     it('shows seed input field', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -147,6 +152,7 @@ describe('GameSimulator', () => {
     it('shows simulate button', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -158,6 +164,7 @@ describe('GameSimulator', () => {
     it('displays how it works info box', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -171,6 +178,7 @@ describe('GameSimulator', () => {
     it('only shows teams with 5 starters in dropdowns', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2, mockTeamNotReady]}
           onSimulate={mockOnSimulate}
         />
@@ -190,6 +198,7 @@ describe('GameSimulator', () => {
     it('displays warning when less than 2 teams are ready', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamNotReady]}
           onSimulate={mockOnSimulate}
         />
@@ -202,6 +211,7 @@ describe('GameSimulator', () => {
     it('shows ready team count in warning message', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamNotReady]}
           onSimulate={mockOnSimulate}
         />
@@ -213,6 +223,7 @@ describe('GameSimulator', () => {
     it('does not show simulator when insufficient teams', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1]}
           onSimulate={mockOnSimulate}
         />
@@ -227,6 +238,7 @@ describe('GameSimulator', () => {
     it('allows selecting team 1', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -241,6 +253,7 @@ describe('GameSimulator', () => {
     it('allows selecting team 2', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -255,6 +268,7 @@ describe('GameSimulator', () => {
     it('displays team records in dropdown', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -267,6 +281,7 @@ describe('GameSimulator', () => {
     it('excludes selected team1 from team2 dropdown', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2, mockTeamReady3]}
           onSimulate={mockOnSimulate}
         />
@@ -291,6 +306,7 @@ describe('GameSimulator', () => {
     it('resets team2 when team1 is changed to match team2', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2, mockTeamReady3]}
           onSimulate={mockOnSimulate}
         />
@@ -312,6 +328,7 @@ describe('GameSimulator', () => {
     it('disables team2 dropdown when team1 not selected', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -324,6 +341,7 @@ describe('GameSimulator', () => {
     it('enables team2 dropdown when team1 is selected', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -341,6 +359,7 @@ describe('GameSimulator', () => {
     it('allows entering a seed number', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -355,6 +374,7 @@ describe('GameSimulator', () => {
     it('shows seed placeholder text', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -367,6 +387,7 @@ describe('GameSimulator', () => {
     it('displays seed help text', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -380,6 +401,7 @@ describe('GameSimulator', () => {
     it('is disabled when no teams selected', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -392,6 +414,7 @@ describe('GameSimulator', () => {
     it('is disabled when only team1 selected', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -407,6 +430,7 @@ describe('GameSimulator', () => {
     it('is enabled when both teams selected', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -427,6 +451,7 @@ describe('GameSimulator', () => {
     it('shows error when simulating without teams', async () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -447,6 +472,7 @@ describe('GameSimulator', () => {
     it('clears error when team1 is selected', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -467,6 +493,7 @@ describe('GameSimulator', () => {
     it('clears error when team2 is selected', async () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -496,6 +523,7 @@ describe('GameSimulator', () => {
 
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -512,6 +540,7 @@ describe('GameSimulator', () => {
 
       await waitFor(() => {
         expect(mockOnSimulate).toHaveBeenCalledWith({
+          league_id: 'league-1',
           team1_id: 'team-1',
           team2_id: 'team-2',
           seed: undefined,
@@ -524,6 +553,7 @@ describe('GameSimulator', () => {
 
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -542,6 +572,7 @@ describe('GameSimulator', () => {
 
       await waitFor(() => {
         expect(mockOnSimulate).toHaveBeenCalledWith({
+          league_id: 'league-1',
           team1_id: 'team-1',
           team2_id: 'team-2',
           seed: 42,
@@ -558,6 +589,7 @@ describe('GameSimulator', () => {
 
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -585,6 +617,7 @@ describe('GameSimulator', () => {
 
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
           onGameComplete={mockOnGameComplete}
@@ -610,6 +643,7 @@ describe('GameSimulator', () => {
 
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -640,6 +674,7 @@ describe('GameSimulator', () => {
 
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -664,6 +699,7 @@ describe('GameSimulator', () => {
 
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -688,6 +724,7 @@ describe('GameSimulator', () => {
     it('applies custom className', () => {
       const { container } = render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
           className="custom-class"
@@ -703,6 +740,7 @@ describe('GameSimulator', () => {
     it('handles empty teams array', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[]}
           onSimulate={mockOnSimulate}
         />
@@ -714,6 +752,7 @@ describe('GameSimulator', () => {
     it('handles single ready team', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1]}
           onSimulate={mockOnSimulate}
         />
@@ -727,6 +766,7 @@ describe('GameSimulator', () => {
 
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -745,6 +785,7 @@ describe('GameSimulator', () => {
 
       await waitFor(() => {
         expect(mockOnSimulate).toHaveBeenCalledWith({
+          league_id: 'league-1',
           team1_id: 'team-1',
           team2_id: 'team-2',
           seed: 0,
@@ -757,6 +798,7 @@ describe('GameSimulator', () => {
     it('has proper form labels', () => {
       render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />
@@ -770,6 +812,7 @@ describe('GameSimulator', () => {
     it('maintains semantic structure', () => {
       const { container } = render(
         <GameSimulator
+          leagueId="league-1"
           teams={[mockTeamReady1, mockTeamReady2]}
           onSimulate={mockOnSimulate}
         />

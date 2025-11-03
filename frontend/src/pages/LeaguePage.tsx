@@ -15,7 +15,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { LeagueForm } from '../components/league/LeagueForm';
-import { PlayerList } from '../components/player/PlayerList';
 import { leagueApi } from '../services/api';
 import type { League, Player, CreateLeagueRequest } from '../types';
 
@@ -111,7 +110,27 @@ export const LeaguePage: React.FC = () => {
       if (response.error) {
         throw new Error(response.error.message);
       }
-      setLeague(response.data as League);
+      const newLeague = response.data as League;
+      setLeague(newLeague);
+      
+      // Automatically generate players for the new league
+      setPlayersLoading(true);
+      try {
+        const playersResponse = await leagueApi.generatePlayers(newLeague.id);
+        if (playersResponse.error) {
+          throw new Error(playersResponse.error.message);
+        }
+        setPlayers(playersResponse.data as Player[]);
+      } catch (playerErr) {
+        console.error('Failed to generate players:', playerErr);
+        setPlayersError(
+          playerErr instanceof Error
+            ? playerErr.message
+            : 'Failed to generate players. Please try again.'
+        );
+      } finally {
+        setPlayersLoading(false);
+      }
       
       // Reload leagues list
       await reloadLeagues();
@@ -176,14 +195,6 @@ export const LeaguePage: React.FC = () => {
   };
 
   /**
-   * Handle player click
-   */
-  const handlePlayerClick = (player: Player) => {
-    // Navigate to player detail page (not yet implemented)
-    console.log('Player clicked:', player);
-  };
-
-  /**
    * Navigate to all players page
    */
   const handleViewAllPlayers = () => {
@@ -212,15 +223,17 @@ export const LeaguePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            League Setup
-          </h1>
-          <p className="text-lg text-gray-600">
-            Create your fantasy dodgeball league and generate the player pool
-          </p>
-        </div>
+        {/* Page Header - Only show when no league is selected */}
+        {!league && (
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              League Setup
+            </h1>
+            <p className="text-lg text-gray-600">
+              Create your fantasy dodgeball league and generate the player pool
+            </p>
+          </div>
+        )}
 
         {/* Existing Leagues List - Show if no league selected and leagues exist */}
         {!league && leaguesLoading && (
@@ -402,12 +415,6 @@ export const LeaguePage: React.FC = () => {
                     </svg>
                     <span>Manage Teams</span>
                   </button>
-                  <button
-                    onClick={handleCreateNewLeague}
-                    className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 font-medium border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    Create New League
-                  </button>
                 </div>
               </div>
             </div>
@@ -457,8 +464,9 @@ export const LeaguePage: React.FC = () => {
               </button>
 
               <button
-                disabled={true}
-                className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-md border border-gray-200 opacity-50 cursor-not-allowed"
+                onClick={() => navigate(`/leagues/${league.id}/games`)}
+                disabled={league.team_ids.length < 2}
+                className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-md border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-purple-100">
                   <svg className="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -466,24 +474,58 @@ export const LeaguePage: React.FC = () => {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
                     />
                   </svg>
                 </div>
                 <div className="text-left">
                   <p className="text-sm font-medium text-gray-900">Simulate Games</p>
-                  <p className="text-xs text-gray-500">Coming in User Story 3</p>
+                  <p className="text-xs text-gray-500">
+                    {league.team_ids.length < 2 ? 'Need 2+ teams' : 'Battle it out!'}
+                  </p>
                 </div>
               </button>
             </div>
 
-            {/* Player Generation Section */}
-            {players.length === 0 ? (
+            {/* Player Generation/Loading Section */}
+            {players.length === 0 && playersLoading ? (
               <div className="bg-white rounded-lg shadow-md border border-gray-200 p-8">
                 <div className="text-center">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
                     <svg
-                      className="h-8 w-8 text-blue-600"
+                      className="animate-spin h-8 w-8 text-blue-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    Generating Player Pool
+                  </h3>
+                  <p className="text-gray-600 max-w-md mx-auto">
+                    Creating {league.settings.player_count} players with randomized skills, attributes, and values...
+                  </p>
+                </div>
+              </div>
+            ) : players.length === 0 && playersError ? (
+              <div className="bg-white rounded-lg shadow-md border border-gray-200 p-8">
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
+                    <svg
+                      className="h-8 w-8 text-red-600"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -492,80 +534,61 @@ export const LeaguePage: React.FC = () => {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    Generate Player Pool
+                    Player Generation Failed
                   </h3>
-                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                    Generate {league.settings.player_count} players with randomized skills, attributes, and values for your league.
-                  </p>
-                  {playersError && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 max-w-md mx-auto">
-                      <p className="text-sm text-red-800">{playersError}</p>
-                    </div>
-                  )}
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 max-w-md mx-auto">
+                    <p className="text-sm text-red-800">{playersError}</p>
+                  </div>
                   <button
                     onClick={handleGeneratePlayers}
-                    disabled={playersLoading}
-                    className="inline-flex items-center gap-2 px-6 py-3 text-base font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-2 px-6 py-3 text-base font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
                   >
-                    {playersLoading ? (
-                      <>
-                        <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          />
-                        </svg>
-                        <span>Generating Players...</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M13 10V3L4 14h7v7l9-11h-7z"
-                          />
-                        </svg>
-                        <span>Generate Players</span>
-                      </>
-                    )}
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    <span>Retry Player Generation</span>
                   </button>
                 </div>
               </div>
-            ) : (
-              /* Player List Section */
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-2xl font-bold text-gray-900">Generated Players</h3>
-                  <button
-                    onClick={handleViewAllPlayers}
-                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                  >
-                    View All Players →
-                  </button>
+            ) : players.length > 0 ? (
+              /* Player Summary Section */
+              <div className="bg-white rounded-lg shadow-md border border-gray-200 p-8">
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
+                    <svg
+                      className="h-8 w-8 text-green-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    Player Pool Generated
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    {players.length} players have been created and are ready for team drafting
+                  </p>
+    
                 </div>
-                <PlayerList
-                  players={players}
-                  onPlayerClick={handlePlayerClick}
-                  showStats={true}
-                />
               </div>
-            )}
+            ) : null}
           </div>
         )}
       </div>

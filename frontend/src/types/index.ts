@@ -41,6 +41,7 @@ export interface Player {
   value: number;
   injury: PlayerInjury | null;
   stats: PlayerStats;
+  league_id: UUID | null;
   team_id: UUID | null;
   is_starter: boolean;
 }
@@ -50,7 +51,7 @@ export interface Team {
   id: UUID;
   name: string;
   description: string;
-  logo: string;
+  logo: string; // Image filename from public/images/team_avatars/
   budget: number;
   player_ids: UUID[];
   starter_ids: UUID[];
@@ -101,7 +102,7 @@ export interface Game {
   team2_id: UUID;
   team1_starters: UUID[];
   team2_starters: UUID[];
-  events: GameEvent[];
+  events?: GameEvent[]; // Optional: only included in full game details, not in summaries
   winner_id: UUID | null;
   completed_at: string | null;
   seed: number;
@@ -116,8 +117,8 @@ export interface CreateLeagueRequest {
 export interface CreateTeamRequest {
   name: string;
   description?: string;
-  logo?: string;
-  league_id: UUID;
+  logo?: string; // Image filename from available team avatars
+  league_id: UUID; // Provided by context, not user input
 }
 
 export interface AddPlayerToTeamRequest {
@@ -129,6 +130,7 @@ export interface UpdateTeamStartersRequest {
 }
 
 export interface CreateGameRequest {
+  league_id: UUID;
   team1_id: UUID;
   team2_id: UUID;
   seed?: number;

@@ -27,6 +27,7 @@ class GameEventType(str, Enum):
     MISS = "miss"
     ELIMINATION = "elimination"
     INJURY = "injury"
+    GAME_END = "game_end"
 
 
 class GameEvent(BaseModel):

@@ -62,6 +62,21 @@ export const GameHistory: React.FC<GameHistoryProps> = ({
 }) => {
   const [showAll, setShowAll] = useState(false);
 
+  // Guard: Check if events are loaded
+  if (!game.events) {
+    return (
+      <div className={`bg-yellow-50 border border-yellow-200 rounded-lg p-6 ${className}`}>
+        <div className="text-center">
+          <div className="text-4xl mb-2">⏳</div>
+          <h3 className="text-lg font-semibold text-yellow-700 mb-1">Loading Game Details...</h3>
+          <p className="text-sm text-yellow-600">
+            Game events are being loaded.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // Determine which events to display
   const displayedEvents = maxEvents && !showAll
     ? game.events.slice(0, maxEvents)

@@ -41,7 +41,7 @@ const getWinPercentage = (wins: number, losses: number): string => {
 /**
  * Get color for budget status
  */
-const getBudgetColor = (budget: number, maxBudget: number = 100000): string => {
+const getBudgetColor = (budget: number, maxBudget: number = 15000): string => {
   const percentage = (budget / maxBudget) * 100;
   if (percentage >= 50) return 'text-green-600';
   if (percentage >= 25) return 'text-yellow-600';
@@ -101,7 +101,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
 
   const rosterSize = player_ids.length;
   const starterCount = starter_ids.length;
-  const maxBudget = 100000;
+  const maxBudget = 15000;
   const spentBudget = maxBudget - budget;
   const rosterStatus = getRosterStatus(rosterSize);
   const starterStatus = getStarterStatus(starterCount);
@@ -124,11 +124,17 @@ export const TeamCard: React.FC<TeamCardProps> = ({
     <div className={cardClasses} onClick={handleClick}>
       {/* Header: Logo, Name, Description */}
       <div className="flex items-start gap-4 mb-4">
-        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl flex-shrink-0">
+        <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
           {logo ? (
-            <img src={logo} alt={name} className="w-full h-full rounded-lg object-cover" />
+            <img 
+              src={`/images/team_avatars/${logo}`} 
+              alt={`${name} logo`} 
+              className="w-full h-full object-cover" 
+            />
           ) : (
-            name.charAt(0).toUpperCase()
+            <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl">
+              {name.charAt(0).toUpperCase()}
+            </div>
           )}
         </div>
         <div className="flex-1 min-w-0">

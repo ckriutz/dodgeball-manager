@@ -38,7 +38,7 @@ team_service = TeamService(storage, player_service)
 @router.post("", response_model=TeamResponse, status_code=status.HTTP_201_CREATED)
 async def create_team(team_data: TeamCreate) -> TeamResponse:
     """
-    Create a new team with $100,000 budget.
+    Create a new team with $15,000 budget.
     
     Args:
         team_data: Team creation data (name, league_id, optional description/logo)
@@ -218,21 +218,24 @@ async def set_starters(team_id: str, request: SetStartersRequest) -> TeamRespons
     """
     Designate starting lineup for team (FR-013).
     
+    Allows setting 0-5 starters during roster management.
+    Note: Exactly 5 starters required for game simulation.
+    
     Validates:
-    - Exactly 5 starters provided
+    - Up to 5 starters provided
     - All starters are on the team's roster
     - No duplicate player IDs
     
     Args:
         team_id: Team UUID
-        request: List of exactly 5 player IDs for starters
+        request: List of up to 5 player IDs for starters
         
     Returns:
         Updated team with starters designated
         
     Raises:
         HTTPException 404: Team not found
-        HTTPException 400: Invalid starter count, players not on roster, or duplicates
+        HTTPException 400: Invalid starter data, players not on roster, or duplicates
     """
     try:
         # Get team

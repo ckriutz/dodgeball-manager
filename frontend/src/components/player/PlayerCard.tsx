@@ -13,6 +13,7 @@ interface PlayerCardProps {
   onClick?: (player: Player) => void;
   showStats?: boolean;
   className?: string;
+  teamName?: string; // Optional team name to display
   // Action button configuration
   actionButton?: {
     label: string;
@@ -47,6 +48,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
   onClick,
   showStats = false,
   className = '',
+  teamName,
   actionButton,
 }) => {
   const { name, age, avatar, skills, value, injury, stats, team_id, is_starter } = player;
@@ -117,11 +119,11 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
             )}
           </div>
 
-          {/* Name and Location */}
+          {/* Name and Team */}
           <div className="flex-1 pt-1">
             <h3 className="text-xl font-bold text-gray-900 mb-1">{name}</h3>
             <p className="text-sm text-gray-500">
-              {team_id ? `Team Player` : 'Free Agent'}
+              {teamName || (team_id ? 'Team Player' : 'Free Agent')}
             </p>
           </div>
         </div>
@@ -143,7 +145,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
 
         {/* Top Skills and Performance - Combined Row */}
         <div className="pt-2 border-t border-gray-100">
-          <div className={`grid ${showStats ? 'grid-cols-2 gap-4' : 'grid-cols-1'}`}>
+          <div className={`grid ${(showStats || team_id) ? 'grid-cols-2 gap-4' : 'grid-cols-1'}`}>
             {/* Top Skills */}
             <div>
               <div className="text-xs font-medium text-gray-600 uppercase mb-2">Top Skills</div>
@@ -157,8 +159,8 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
               </div>
             </div>
 
-            {/* Performance (if enabled) */}
-            {showStats && (
+            {/* Performance (if enabled or player is on a team) */}
+            {(showStats || team_id) && (
               <div>
                 <div className="text-xs font-medium text-gray-600 uppercase mb-2">Performance</div>
                 <div className="space-y-2">

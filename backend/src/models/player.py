@@ -133,6 +133,7 @@ class Player(BaseModel):
     value: int = Field(ge=0, description="Calculated dollar value")
     injury: Optional[Injury] = Field(default=None)
     stats: PlayerStats = Field(default_factory=PlayerStats)
+    league_id: Optional[str] = Field(default=None, description="League this player belongs to")
     team_id: Optional[str] = Field(default=None, description="Assigned team ID or null for free agent")
     is_starter: bool = Field(default=False, description="Whether designated as starter")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -313,6 +314,7 @@ class Player(BaseModel):
                     "missed_throws": 0,
                     "successful_hits": 0
                 },
+                "league_id": None,
                 "team_id": None,
                 "is_starter": False
             }
@@ -325,6 +327,7 @@ class PlayerCreate(BaseModel):
     age: int = Field(ge=18, le=20, description="New players must be aged 18-20 (FR-001)")
     avatar: str = Field(default="avatar-placeholder")
     skills: PlayerSkills
+    league_id: Optional[str] = Field(default=None, description="League this player belongs to")
 
     @model_validator(mode='after')
     def validate_skill_sum(self) -> 'PlayerCreate':
@@ -352,6 +355,7 @@ class PlayerCreate(BaseModel):
             skills=self.skills,
             value=value,
             stats=PlayerStats(),
+            league_id=self.league_id,
             team_id=None,
             is_starter=False
         )

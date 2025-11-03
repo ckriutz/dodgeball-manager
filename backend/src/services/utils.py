@@ -5,8 +5,70 @@ This module provides common utility functions used across services,
 including player value calculation, skill validation, and other helpers.
 """
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Set
 import random
+import json
+import os
+from pathlib import Path
+
+
+# Track used names globally to prevent duplicates
+_used_player_names: Set[str] = set()
+_available_player_names: List[str] = []
+
+
+def _load_player_names() -> List[str]:
+    """
+    Load player names from JSON file.
+    
+    Returns:
+        List of available player names
+    """
+    # Get path to player names JSON file
+    current_dir = Path(__file__).parent.parent
+    names_file = current_dir / "data" / "player_names.json"
+    
+    with open(names_file, 'r') as f:
+        data = json.load(f)
+        return data.get('names', [])
+
+
+def get_random_player_name() -> str:
+    """
+    Get a random unused player name.
+    
+    Returns:
+        A unique player name
+        
+    Raises:
+        ValueError: If all names have been used
+    """
+    global _available_player_names, _used_player_names
+    
+    # Load names if not already loaded
+    if not _available_player_names and not _used_player_names:
+        all_names = _load_player_names()
+        _available_player_names = all_names.copy()
+    
+    # If all names used, raise error
+    if not _available_player_names:
+        raise ValueError("All player names have been used. Please add more names to player_names.json")
+    
+    # Pick a random name from available names
+    name = random.choice(_available_player_names)
+    _available_player_names.remove(name)
+    _used_player_names.add(name)
+    
+    return name
+
+
+def reset_player_names() -> None:
+    """
+    Reset the player names pool (useful for testing).
+    """
+    global _available_player_names, _used_player_names
+    _available_player_names = []
+    _used_player_names = set()
 
 
 def calculate_player_value(skills: Dict[str, int], age: int) -> int:

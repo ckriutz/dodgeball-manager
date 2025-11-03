@@ -188,8 +188,9 @@ export const leagueApi = {
   /**
    * Generate players for a league
    */
-  generatePlayers: async (leagueId: string) => {
-    return apiClient.post(`/leagues/${leagueId}/players`);
+  generatePlayers: async (leagueId: string, count?: number) => {
+    const params = count ? `?count=${count}` : '';
+    return apiClient.post(`/leagues/${leagueId}/players${params}`);
   },
 
   /**

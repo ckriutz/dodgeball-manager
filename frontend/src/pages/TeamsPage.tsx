@@ -481,7 +481,7 @@ export const TeamsPage: React.FC = () => {
             <div className="max-w-2xl mx-auto">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Create New Team</h2>
               <TeamForm
-                leagues={league ? [league] : []}
+                leagueId={leagueId!}
                 onSubmit={handleCreateTeam}
                 onCancel={() => setViewMode('list')}
                 isLoading={actionLoading}
@@ -579,8 +579,9 @@ export const TeamsPage: React.FC = () => {
                   isDisabled: (player) => {
                     // Disable if team is at max capacity or over budget
                     if (!selectedTeam) return true;
+                    // Use player_ids length from team object for accurate roster count
+                    if (selectedTeam.player_ids.length >= 12) return true; // Max roster size
                     const currentRoster = allPlayers.filter(p => p.team_id === selectedTeam.id);
-                    if (currentRoster.length >= 10) return true; // Max roster size
                     const remainingBudget = selectedTeam.budget - currentRoster.reduce((sum, p) => sum + p.value, 0);
                     return player.value > remainingBudget;
                   },

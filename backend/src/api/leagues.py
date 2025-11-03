@@ -95,15 +95,20 @@ def list_leagues() -> List[League]:
 
 
 @router.post("/{league_id}/players", response_model=List[Player], status_code=201)
-def generate_players(league_id: str) -> List[Player]:
+def generate_players(
+    league_id: str,
+    count: Optional[int] = Query(None, description="Number of players to generate (overrides league default)")
+) -> List[Player]:
     """
     Generate players for a league.
     
-    This endpoint creates the initial player pool based on the league's
-    player_count setting (50-100 players).
+    This endpoint creates players for the league. If count is not specified,
+    it uses the league's player_count setting (default 75). If count is specified,
+    it generates that many additional players.
     
     Args:
         league_id: League UUID
+        count: Optional number of players to generate
         
     Returns:
         List of generated players
@@ -112,11 +117,20 @@ def generate_players(league_id: str) -> List[Player]:
         HTTPException: 404 if league not found
         HTTPException: 400 if validation fails
         
-    Example:
+    Examples:
         POST /api/leagues/123e4567-e89b-12d3-a456-426614174000/players
+        POST /api/leagues/123e4567-e89b-12d3-a456-426614174000/players?count=25
     """
     try:
-        players = league_service.generate_players_for_league(league_id)
+        if count is not None:
+            # Generate specific count of additional players
+            league = league_service.get_league(league_id)
+            if league is None:
+                raise ValueError(f"League {league_id} not found")
+            players = player_service.generate_players(count=count, league_id=league_id)
+        else:
+            # Generate default player pool
+            players = league_service.generate_players_for_league(league_id)
         return players
     except ValueError as e:
         if "not found" in str(e):

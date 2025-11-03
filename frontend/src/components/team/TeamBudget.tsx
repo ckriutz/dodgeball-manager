@@ -1,15 +1,10 @@
 /**
  * TeamBudget Component
  * 
- * Displays detailed budget information for a team:
- * - Total budget ($100,000 initial)
- * - Amount spent
- * - Amount remaining
- * - Visual progress bar
- * - Per-player spending breakdown
- * - Budget status warnings
- * 
- * Used in team management and player drafting interfaces.
+ * Displays team budget information:
+ * - Total budget ($15,000 initial)
+ * - Remaining budget
+ * - Spent budget
  */
 
 import React from 'react';
@@ -69,7 +64,7 @@ export const TeamBudget: React.FC<TeamBudgetProps> = ({
   showBreakdown = false,
   className = '',
 }) => {
-  const maxBudget = 100000;
+  const maxBudget = 15000;
   const remainingBudget = team.budget;
   const spentBudget = maxBudget - remainingBudget;
   const percentageRemaining = (remainingBudget / maxBudget) * 100;

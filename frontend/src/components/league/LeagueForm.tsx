@@ -4,7 +4,7 @@
  * Form for creating a new fantasy dodgeball league.
  * Features:
  * - League name input with validation
- * - Player count slider (50-100)
+ * - Default player pool of 75 players
  * - Submit handler with loading state
  * - Error display
  * - Reset functionality
@@ -33,12 +33,10 @@ export const LeagueForm: React.FC<LeagueFormProps> = ({
 }) => {
   // Form state
   const [name, setName] = useState('');
-  const [playerCount, setPlayerCount] = useState(75);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  // Min/max player counts
-  const MIN_PLAYERS = 50;
-  const MAX_PLAYERS = 100;
+  // Default player count for new leagues
+  const DEFAULT_PLAYER_COUNT = 75;
 
   /**
    * Validate form data
@@ -60,12 +58,6 @@ export const LeagueForm: React.FC<LeagueFormProps> = ({
       return false;
     }
 
-    // Validate player count
-    if (playerCount < MIN_PLAYERS || playerCount > MAX_PLAYERS) {
-      setValidationError(`Player count must be between ${MIN_PLAYERS} and ${MAX_PLAYERS}`);
-      return false;
-    }
-
     setValidationError(null);
     return true;
   };
@@ -82,7 +74,7 @@ export const LeagueForm: React.FC<LeagueFormProps> = ({
 
     const data: CreateLeagueRequest = {
       name: name.trim(),
-      player_count: playerCount,
+      player_count: DEFAULT_PLAYER_COUNT,
     };
 
     await onSubmit(data);
@@ -93,7 +85,6 @@ export const LeagueForm: React.FC<LeagueFormProps> = ({
    */
   const handleReset = () => {
     setName('');
-    setPlayerCount(75);
     setValidationError(null);
   };
 
@@ -103,17 +94,6 @@ export const LeagueForm: React.FC<LeagueFormProps> = ({
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setName(e.target.value);
     // Clear validation error when user starts typing
-    if (validationError) {
-      setValidationError(null);
-    }
-  };
-
-  /**
-   * Handle player count change
-   */
-  const handlePlayerCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPlayerCount(parseInt(e.target.value, 10));
-    // Clear validation error when user changes value
     if (validationError) {
       setValidationError(null);
     }
@@ -180,31 +160,6 @@ export const LeagueForm: React.FC<LeagueFormProps> = ({
           </p>
         </div>
 
-        {/* Player Count Slider */}
-        <div>
-          <label htmlFor="player-count" className="block text-sm font-medium text-gray-700 mb-2">
-            Player Pool Size: <span className="font-bold text-blue-600">{playerCount}</span> players
-          </label>
-          <input
-            type="range"
-            id="player-count"
-            min={MIN_PLAYERS}
-            max={MAX_PLAYERS}
-            step={5}
-            value={playerCount}
-            onChange={handlePlayerCountChange}
-            disabled={loading}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed"
-          />
-          <div className="flex justify-between text-xs text-gray-500 mt-1">
-            <span>{MIN_PLAYERS} min</span>
-            <span>{MAX_PLAYERS} max</span>
-          </div>
-          <p className="text-xs text-gray-500 mt-2">
-            More players provide greater variety for team drafting and trading
-          </p>
-        </div>
-
         {/* Info Box */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex">
@@ -225,7 +180,7 @@ export const LeagueForm: React.FC<LeagueFormProps> = ({
             </div>
             <div className="ml-3">
               <p className="text-sm text-blue-800">
-                After creating your league, you'll be able to generate the player pool with randomized skills and values.
+                Your league will start with {DEFAULT_PLAYER_COUNT} players. After creation, you can generate additional players at any time to expand your player pool.
               </p>
             </div>
           </div>

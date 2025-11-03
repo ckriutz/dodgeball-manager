@@ -47,7 +47,8 @@ class MemoryStorage:
     @classmethod
     def reset(cls) -> None:
         """Reset storage for testing purposes."""
-        cls._instance = None
+        if cls._instance is not None:
+            cls._instance._data = StorageData()
 
     # Player operations
     def create_player(self, player_data: Dict[str, Any]) -> str:

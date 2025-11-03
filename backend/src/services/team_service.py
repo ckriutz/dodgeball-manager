@@ -38,18 +38,18 @@ class TeamService:
         self.storage = storage or MemoryStorage()
         self.player_service = player_service or PlayerService(storage=self.storage)
 
-    def create_team(self, team_create: TeamCreate) -> Team:
+    def create_team(self, team_create: 'TeamCreate') -> Team:
         """
-        Create a new team with $100,000 budget.
+        Create a new team with $15,000 budget.
         
         Args:
-            team_create: Team creation schema
+            team_create: Team creation data
             
         Returns:
-            Created Team instance
+            New Team instance
             
         Raises:
-            ValueError: If league doesn't exist
+            ValueError: If team data is invalid
         """
         # Verify league exists
         league = self.storage.get_league(team_create.league_id)
@@ -280,19 +280,19 @@ class TeamService:
         """
         Designate starting lineup for team (FR-013).
         
-        Validates that exactly 5 starters are provided and all are on roster.
-        Updates is_starter flag for all players on the team.
+        Allows setting 0-5 starters. Validates all starters are on roster.
+        Note: Exactly 5 starters are required for game simulation, but teams
+        can have partial starter lists during roster building.
         
         Args:
             team_id: Team UUID
-            starter_ids: List of exactly 5 player IDs
+            starter_ids: List of up to 5 player IDs
             
         Returns:
             Updated Team instance
             
         Raises:
-            ValueError: If team not found, not exactly 5 starters,
-                       duplicates exist, or starters not on roster
+            ValueError: If team not found, duplicates exist, or starters not on roster
         """
         # Get team
         team = self.get_team(team_id)
@@ -438,17 +438,17 @@ class TeamService:
         roster = self.get_team_roster(team_id)
         return sum(player.value for player in roster)
 
-    def validate_team_budget(self, team_id: str) -> bool:
+    def validate_budget_integrity(self, team_id: str) -> bool:
         """
-        Validate that team's budget integrity is maintained.
+        Verify that roster value + remaining budget equals initial budget.
         
-        Formula: roster_value + remaining_budget = 100,000
+        Formula: roster_value + remaining_budget = 15,000
         
         Args:
             team_id: Team UUID
             
         Returns:
-            True if budget is valid
+            True if budget integrity is maintained
             
         Raises:
             ValueError: If team not found
@@ -456,9 +456,14 @@ class TeamService:
         team = self.get_team(team_id)
         if team is None:
             raise ValueError(f"Team {team_id} not found")
-
-        roster_value = self.calculate_roster_value(team_id)
-        return roster_value + team.budget == 100000
+        
+        roster_value = sum(
+            player.value
+            for player_id in team.player_ids
+            if (player := self.player_service.get_player(player_id))
+        )
+        
+        return roster_value + team.budget == 15000
 
     def is_team_ready_for_game(self, team_id: str) -> bool:
         """

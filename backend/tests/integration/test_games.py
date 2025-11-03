@@ -23,12 +23,16 @@ from src.models.team import Team
 from src.models.player import Player, PlayerSkills
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="function")
 def reset_storage():
-    """Reset storage before each test."""
+    """Reset storage and player names before each test."""
+    from src.services.utils import reset_player_names
+    
     storage = MemoryStorage()
     storage.reset()
+    reset_player_names()  # Reset the global player name pool
     yield storage
+    # No cleanup needed - next test will reset
 
 
 @pytest.fixture
@@ -38,7 +42,7 @@ def client():
 
 
 @pytest.fixture
-def league_with_two_teams(client):
+def league_with_two_teams(client, reset_storage):
     """Create a league with two teams that have complete rosters."""
     # Create league
     league_response = client.post(
@@ -51,7 +55,7 @@ def league_with_two_teams(client):
     # Generate players
     players_response = client.post(f"/api/leagues/{league_id}/players")
     assert players_response.status_code == 201
-    players = players_response.json()["players"]
+    players = players_response.json()  # API returns list directly, not wrapped in dict
     
     # Create team 1
     team1_response = client.post(
@@ -129,7 +133,7 @@ class TestGameSimulationEndpoint:
         league_id = league_with_two_teams["league_id"]
         team1_id = league_with_two_teams["team1_id"]
         team2_id = league_with_two_teams["team2_id"]
-        
+    
         # Simulate game
         response = client.post(
             "/api/games",
@@ -140,7 +144,7 @@ class TestGameSimulationEndpoint:
                 "seed": 42
             }
         )
-        
+    
         assert response.status_code == 201
         game = response.json()
         

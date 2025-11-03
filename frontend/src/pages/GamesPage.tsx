@@ -179,8 +179,26 @@ export const GamesPage: React.FC = () => {
   /**
    * Handle selecting a past game
    */
-  const handleSelectGame = (game: Game) => {
-    setSelectedGame(game);
+  const handleSelectGame = async (game: Game) => {
+    // Fetch full game details if events are not loaded
+    if (!game.events || game.events.length === 0) {
+      try {
+        const response = await gameApi.getGame(game.id);
+        if (response.error) {
+          console.error('Failed to load game details:', response.error);
+          setSimulationError(`Failed to load game details: ${response.error.message}`);
+          return;
+        }
+        const fullGame = response.data as Game;
+        setSelectedGame(fullGame);
+      } catch (err) {
+        console.error('Failed to load game details:', err);
+        setSimulationError('Failed to load game details. Please try again.');
+        return;
+      }
+    } else {
+      setSelectedGame(game);
+    }
     setViewMode('game-detail');
   };
 
@@ -288,6 +306,7 @@ export const GamesPage: React.FC = () => {
         <div className="space-y-8">
           {/* Game Simulator */}
           <GameSimulator
+            leagueId={leagueId!}
             teams={teams}
             onSimulate={handleSimulateGame}
           />
@@ -332,7 +351,7 @@ export const GamesPage: React.FC = () => {
                           </div>
                           <div className="text-right">
                             <div className="text-xs text-gray-500">
-                              {game.events.length} events
+                              {game.events?.length || 0} events
                             </div>
                             {game.completed_at && (
                               <div className="text-xs text-gray-400">

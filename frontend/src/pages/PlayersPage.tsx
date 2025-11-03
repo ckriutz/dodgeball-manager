@@ -36,51 +36,54 @@ export const PlayersPage: React.FC = () => {
    * Load league and players on mount
    */
   useEffect(() => {
-    const loadData = async () => {
-      if (!leagueId) {
-        setError('League ID is required');
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        // Load league info
-        const leagueResponse = await leagueApi.getLeague(leagueId);
-        if (leagueResponse.error) {
-          throw new Error(leagueResponse.error.message);
-        }
-        setLeague(leagueResponse.data as League);
-
-        // Load players
-        const playersResponse = await leagueApi.getPlayers(leagueId);
-        if (playersResponse.error) {
-          throw new Error(playersResponse.error.message);
-        }
-        setPlayers(playersResponse.data as Player[]);
-
-        // Load teams
-        const teamsResponse = await leagueApi.getTeams(leagueId);
-        if (teamsResponse.error) {
-          throw new Error(teamsResponse.error.message);
-        }
-        setTeams(teamsResponse.data as Team[]);
-      } catch (err) {
-        console.error('Failed to load data:', err);
-        setError(
-          err instanceof Error
-            ? err.message
-            : 'Failed to load league data. Please try again.'
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadData();
   }, [leagueId]);
+
+  /**
+   * Load data function
+   */
+  const loadData = async () => {
+    if (!leagueId) {
+      setError('League ID is required');
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Load league info
+      const leagueResponse = await leagueApi.getLeague(leagueId);
+      if (leagueResponse.error) {
+        throw new Error(leagueResponse.error.message);
+      }
+      setLeague(leagueResponse.data as League);
+
+      // Load players
+      const playersResponse = await leagueApi.getPlayers(leagueId);
+      if (playersResponse.error) {
+        throw new Error(playersResponse.error.message);
+      }
+      setPlayers(playersResponse.data as Player[]);
+
+      // Load teams
+      const teamsResponse = await leagueApi.getTeams(leagueId);
+      if (teamsResponse.error) {
+        throw new Error(teamsResponse.error.message);
+      }
+      setTeams(teamsResponse.data as Team[]);
+    } catch (err) {
+      console.error('Failed to load data:', err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to load league data. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   /**
    * Handle player click
@@ -276,6 +279,8 @@ export const PlayersPage: React.FC = () => {
           showStats={true}
           loading={loading}
           emptyMessage="No players have been generated for this league yet."
+          leagueId={leagueId}
+          onPlayerGenerated={loadData}
         />
 
         {/* Generate Players CTA - Show if no players */}
