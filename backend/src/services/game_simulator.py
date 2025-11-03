@@ -63,6 +63,12 @@ class GameSimulator:
         # Cache players to avoid repeated fetches and ensure stat updates persist
         self.player_cache: Dict[str, Player] = {}
         self._load_players()
+        
+        # Cache team names for event descriptions
+        team1_data = self.storage.get_team(game.team1_id)
+        team2_data = self.storage.get_team(game.team2_id)
+        self.team1_name = team1_data['name'] if team1_data else 'Team 1'
+        self.team2_name = team2_data['name'] if team2_data else 'Team 2'
 
     def _load_players(self) -> None:
         """
@@ -142,34 +148,65 @@ class GameSimulator:
         catch_prob = player.skills.catching / 100.0 + random.uniform(-self.CATCH_RANDOM_VARIANCE, self.CATCH_RANDOM_VARIANCE)
         return max(0.0, min(1.0, catch_prob))
 
-    def select_thrower(self, team_ids: List[str]) -> str:
+    def select_ball_picker(self) -> tuple[str, List[str], List[str], float, str]:
         """
-        Select thrower from team based on weighted probability.
+        Determine which player picks up the ball based on IQ, speed, and luck.
         
-        Better players throw more often, but not always the same player.
-        Uses throwing skill + IQ + speed as the selection criteria.
+        All active players from both teams compete for the ball each turn.
+        Formula: random(IQ/2, IQ) + speed + random(0, luck)
+        Higher IQ players have both higher minimum and maximum random values.
         
-        Args:
-            team_ids: List of active player IDs on the team
-            
         Returns:
-            Player ID of selected thrower
+            Tuple of (thrower_id, throwing_team, defending_team, score, team_name)
         """
-        # Calculate scores: throwing + IQ + speed/2
-        scores = [
-            (pid, self.get_player(pid).skills.throwing + 
-                  self.get_player(pid).skills.iq + 
-                  self.get_player(pid).skills.speed * self.SPEED_THROWING_WEIGHT) 
-            for pid in team_ids
-        ]
+        all_active = self.active_team1 + self.active_team2
         
-        # Use weighted random choice based on skill
-        total = sum(score for _, score in scores)
-        if total == 0:
-            return random.choice(team_ids)
+        # Calculate pickup score for each player
+        scores = []
+        for player_id in all_active:
+            player = self.get_player(player_id)
+            
+            # IQ component: random from half of IQ to full IQ
+            iq_min = player.skills.iq / 2
+            iq_component = random.uniform(iq_min, player.skills.iq)
+            
+            # Full formula
+            score = (
+                iq_component +
+                player.skills.speed +
+                random.uniform(0, player.skills.luck)
+            )
+            scores.append((player_id, score, player.name))
         
-        weights = [score / total for _, score in scores]
-        return random.choices([pid for pid, _ in scores], weights=weights)[0]
+        # Log all scores for debugging
+        logger.debug(f"Turn {self.turn + 1} ball pickup scores:")
+        for player_id, score, name in sorted(scores, key=lambda x: x[1], reverse=True):
+            player = self.get_player(player_id)
+            team_label = "Team1" if player_id in self.active_team1 else "Team2"
+            logger.debug(
+                f"  [{team_label}] {name}: {score:.2f} "
+                f"(IQ:{player.skills.iq} Speed:{player.skills.speed} Luck:{player.skills.luck})"
+            )
+        
+        # Find player with highest score
+        winner = max(scores, key=lambda x: x[1])
+        thrower_id = winner[0]
+        winner_name = winner[2]
+        winner_score = winner[1]
+        
+        # Determine which team has the ball
+        if thrower_id in self.active_team1:
+            throwing_team = self.active_team1
+            defending_team = self.active_team2
+            team_name = self.team1_name
+        else:
+            throwing_team = self.active_team2
+            defending_team = self.active_team1
+            team_name = self.team2_name
+        
+        logger.debug(f"  *** {winner_name} ({team_name}) wins the ball with score {winner_score:.2f} ***")
+        
+        return thrower_id, throwing_team, defending_team, winner_score, team_name
 
     def record_throw(self, thrower: Player, target: Player) -> None:
         """
@@ -294,14 +331,17 @@ class GameSimulator:
         while self.active_team1 and self.active_team2 and self.turn < self.MAX_TURNS:
             self.turn += 1
             
-            # Alternate throwing team starting with team1
-            is_team1_throwing = self.turn % 2 == 1
-            throwing_team = self.active_team1 if is_team1_throwing else self.active_team2
-            defending_team = self.active_team2 if is_team1_throwing else self.active_team1
-
-            # Select thrower using weighted probability
-            thrower_id = self.select_thrower(throwing_team)
+            # Determine who picks up the ball based on IQ, speed, and luck
+            thrower_id, throwing_team, defending_team, pickup_score, team_name = self.select_ball_picker()
             thrower = self.get_player(thrower_id)
+            
+            # Record ball pickup event with score and team name
+            self.game.add_event(
+                turn=self.turn,
+                event_type=GameEventType.BALL_PICKUP,
+                outcome=f"{thrower.name} ({team_name}) picks up the ball with a score of {pickup_score:.1f}",
+                thrower_id=thrower_id
+            )
 
             # Select random target
             target_id = random.choice(defending_team)
@@ -388,6 +428,12 @@ class GameSimulator:
         )
         
         logger.info(f"Game completed in {self.turn} turns, winner: {winner_id}")
+        
+        # Increment games_played for all starters who participated
+        all_starter_ids = self.game.team1_starters + self.game.team2_starters
+        for player_id in all_starter_ids:
+            player = self.player_cache[player_id]
+            player.stats.games_played += 1
         
         # Update all modified players in storage from cache
         for player_id, player in self.player_cache.items():

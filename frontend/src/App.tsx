@@ -9,6 +9,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LeagueProvider } from './contexts/LeagueContext';
 import { LeaguePage } from './pages/LeaguePage';
 import { PlayersPage } from './pages/PlayersPage';
+import { PlayerDetailPage } from './pages/PlayerDetailPage';
 import { TeamsPage } from './pages/TeamsPage';
 import { GamesPage } from './pages/GamesPage';
 
@@ -72,12 +73,14 @@ const App: React.FC = () => {
             <Route path="/leagues" element={<LeaguePage />} />
             <Route path="/leagues/:leagueId" element={<LeaguePage />} />
             <Route path="/leagues/:leagueId/players" element={<PlayersPage />} />
+            <Route path="/leagues/:leagueId/players/:playerId" element={<PlayerDetailPage />} />
             
             {/* Player routes */}
             <Route path="/players" element={<PlayersPage />} />
             
             {/* Team routes */}
             <Route path="/leagues/:leagueId/teams" element={<TeamsPage />} />
+            <Route path="/leagues/:leagueId/teams/:teamId" element={<TeamsPage />} />
             <Route path="/teams/:teamId" element={<TeamsPage />} />
             
             {/* Game routes */}

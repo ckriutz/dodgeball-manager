@@ -12,6 +12,8 @@ interface GameStatsProps {
   game: Game;
   team1Name?: string;
   team2Name?: string;
+  team1Logo?: string;
+  team2Logo?: string;
   players?: Record<string, Player>; // Optional player lookup
   className?: string;
 }
@@ -25,7 +27,7 @@ const calculateGameStats = (game: Game) => {
     hits: 0,
     catches: 0,
     misses: 0,
-    eliminations: 0,
+    eliminations: 0, // Eliminations this team CAUSED (opponents eliminated)
   };
 
   const team2Stats = {
@@ -33,7 +35,7 @@ const calculateGameStats = (game: Game) => {
     hits: 0,
     catches: 0,
     misses: 0,
-    eliminations: 0,
+    eliminations: 0, // Eliminations this team CAUSED (opponents eliminated)
   };
 
   // Guard: Check if events exist
@@ -43,7 +45,8 @@ const calculateGameStats = (game: Game) => {
 
   // Count events per team
   game.events.forEach(event => {
-    const throwerIsTeam1 = game.team1_starters.includes(event.thrower_id || '');
+    const throwerIsTeam1 = event.thrower_id ? game.team1_starters.includes(event.thrower_id) : false;
+    const targetIsTeam1 = event.target_id ? game.team1_starters.includes(event.target_id) : false;
     
     switch (event.type) {
       case 'throw':
@@ -55,8 +58,8 @@ const calculateGameStats = (game: Game) => {
         else team2Stats.hits++;
         break;
       case 'catch':
-        // Catch is attributed to the target (catcher)
-        if (!throwerIsTeam1) team1Stats.catches++;
+        // Catch is attributed to the catcher (target of throw)
+        if (targetIsTeam1) team1Stats.catches++;
         else team2Stats.catches++;
         break;
       case 'miss':
@@ -64,8 +67,13 @@ const calculateGameStats = (game: Game) => {
         else team2Stats.misses++;
         break;
       case 'elimination':
-        if (throwerIsTeam1) team1Stats.eliminations++;
-        else team2Stats.eliminations++;
+        // Count eliminations caused by each team
+        // If target was eliminated and is on team1, team2 gets credit
+        if (targetIsTeam1) {
+          team2Stats.eliminations++;
+        } else {
+          team1Stats.eliminations++;
+        }
         break;
     }
   });
@@ -82,43 +90,14 @@ const calculateAccuracy = (hits: number, throws: number): string => {
 };
 
 /**
- * StatBar - Visual comparison bar
- */
-const StatBar: React.FC<{
-  team1Value: number;
-  team2Value: number;
-  team1Color?: string;
-  team2Color?: string;
-}> = ({ team1Value, team2Value, team1Color = 'bg-blue-500', team2Color = 'bg-purple-500' }) => {
-  const total = team1Value + team2Value;
-  const team1Percent = total > 0 ? (team1Value / total) * 100 : 50;
-  const team2Percent = total > 0 ? (team2Value / total) * 100 : 50;
-
-  return (
-    <div className="flex h-6 rounded-lg overflow-hidden bg-gray-200">
-      <div
-        className={`${team1Color} flex items-center justify-center text-white text-xs font-semibold transition-all`}
-        style={{ width: `${team1Percent}%` }}
-      >
-        {team1Value > 0 && team1Value}
-      </div>
-      <div
-        className={`${team2Color} flex items-center justify-center text-white text-xs font-semibold transition-all`}
-        style={{ width: `${team2Percent}%` }}
-      >
-        {team2Value > 0 && team2Value}
-      </div>
-    </div>
-  );
-};
-
-/**
  * GameStats component - Comprehensive game statistics display
  */
 export const GameStats: React.FC<GameStatsProps> = ({
   game,
   team1Name = 'Team 1',
   team2Name = 'Team 2',
+  team1Logo,
+  team2Logo,
   className = '',
 }) => {
   // Guard: Check if events are loaded
@@ -188,16 +167,32 @@ export const GameStats: React.FC<GameStatsProps> = ({
         {/* Team Names */}
         <div className="flex items-center justify-between text-center">
           <div className="flex-1">
-            <div className="w-16 h-16 mx-auto mb-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg">
-              {team1Name.charAt(0)}
+            <div className="w-16 h-16 mx-auto mb-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg overflow-hidden">
+              {team1Logo ? (
+                <img 
+                  src={`/images/team_avatars/${team1Logo}`} 
+                  alt={team1Name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                team1Name.charAt(0)
+              )}
             </div>
             <h4 className="font-bold text-gray-900">{team1Name}</h4>
             {team1Won && <span className="text-xs text-blue-600 font-semibold">WINNER</span>}
           </div>
           <div className="text-2xl text-gray-400 mx-4">VS</div>
           <div className="flex-1">
-            <div className="w-16 h-16 mx-auto mb-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg">
-              {team2Name.charAt(0)}
+            <div className="w-16 h-16 mx-auto mb-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg overflow-hidden">
+              {team2Logo ? (
+                <img 
+                  src={`/images/team_avatars/${team2Logo}`} 
+                  alt={team2Name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                team2Name.charAt(0)
+              )}
             </div>
             <h4 className="font-bold text-gray-900">{team2Name}</h4>
             {!team1Won && isCompleted && <span className="text-xs text-purple-600 font-semibold">WINNER</span>}
@@ -218,65 +213,66 @@ export const GameStats: React.FC<GameStatsProps> = ({
 
         {/* Detailed Statistics */}
         <div className="space-y-4 pt-4 border-t border-gray-200">
-          <h4 className="text-sm font-semibold text-gray-700 uppercase">Performance Breakdown</h4>
+          <h4 className="text-sm font-semibold text-gray-700 uppercase text-center">Performance Breakdown</h4>
 
-          {/* Throws */}
-          <div>
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">Throws Attempted</span>
-              <span className="text-gray-900 font-semibold">
-                {team1Stats.throws} - {team2Stats.throws}
-              </span>
-            </div>
-            <StatBar team1Value={team1Stats.throws} team2Value={team2Stats.throws} />
-          </div>
-
-          {/* Hits */}
-          <div>
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">Successful Hits</span>
-              <span className="text-gray-900 font-semibold">
-                {team1Stats.hits} - {team2Stats.hits}
-              </span>
-            </div>
-            <StatBar 
-              team1Value={team1Stats.hits} 
-              team2Value={team2Stats.hits}
-              team1Color="bg-red-500"
-              team2Color="bg-orange-500"
-            />
-          </div>
-
-          {/* Catches */}
-          <div>
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">Catches Made</span>
-              <span className="text-gray-900 font-semibold">
-                {team1Stats.catches} - {team2Stats.catches}
-              </span>
-            </div>
-            <StatBar 
-              team1Value={team1Stats.catches} 
-              team2Value={team2Stats.catches}
-              team1Color="bg-green-500"
-              team2Color="bg-teal-500"
-            />
-          </div>
-
-          {/* Accuracy */}
-          <div>
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">Throwing Accuracy</span>
-              <span className="text-gray-900 font-semibold">
-                {team1Accuracy} - {team2Accuracy}
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="bg-blue-100 rounded px-3 py-2 text-center">
-                <div className="text-xl font-bold text-blue-900">{team1Accuracy}</div>
+          <div className="grid grid-cols-2 gap-4">
+            {/* Team 1 Stats */}
+            <div className="space-y-2">
+              <h5 className="text-xs font-semibold text-blue-700 uppercase text-center mb-2">{team1Name}</h5>
+              
+              <div className="flex justify-between items-center p-2 bg-blue-50 rounded-lg border border-blue-200">
+                <span className="text-xs font-medium text-gray-700">Throws</span>
+                <span className="text-sm font-bold text-blue-900">{team1Stats.throws}</span>
               </div>
-              <div className="bg-purple-100 rounded px-3 py-2 text-center">
-                <div className="text-xl font-bold text-purple-900">{team2Accuracy}</div>
+
+              <div className="flex justify-between items-center p-2 bg-blue-50 rounded-lg border border-blue-200">
+                <span className="text-xs font-medium text-gray-700">Hits</span>
+                <span className="text-sm font-bold text-blue-900">{team1Stats.hits}</span>
+              </div>
+
+              <div className="flex justify-between items-center p-2 bg-blue-50 rounded-lg border border-blue-200">
+                <span className="text-xs font-medium text-gray-700">Catches</span>
+                <span className="text-sm font-bold text-blue-900">{team1Stats.catches}</span>
+              </div>
+
+              <div className="flex justify-between items-center p-2 bg-blue-50 rounded-lg border border-blue-200">
+                <span className="text-xs font-medium text-gray-700">Misses</span>
+                <span className="text-sm font-bold text-blue-900">{team1Stats.misses}</span>
+              </div>
+
+              <div className="flex justify-between items-center p-2 bg-blue-50 rounded-lg border border-blue-200">
+                <span className="text-xs font-medium text-gray-700">Accuracy</span>
+                <span className="text-sm font-bold text-blue-900">{team1Accuracy}</span>
+              </div>
+            </div>
+
+            {/* Team 2 Stats */}
+            <div className="space-y-2">
+              <h5 className="text-xs font-semibold text-purple-700 uppercase text-center mb-2">{team2Name}</h5>
+              
+              <div className="flex justify-between items-center p-2 bg-purple-50 rounded-lg border border-purple-200">
+                <span className="text-xs font-medium text-gray-700">Throws</span>
+                <span className="text-sm font-bold text-purple-900">{team2Stats.throws}</span>
+              </div>
+
+              <div className="flex justify-between items-center p-2 bg-purple-50 rounded-lg border border-purple-200">
+                <span className="text-xs font-medium text-gray-700">Hits</span>
+                <span className="text-sm font-bold text-purple-900">{team2Stats.hits}</span>
+              </div>
+
+              <div className="flex justify-between items-center p-2 bg-purple-50 rounded-lg border border-purple-200">
+                <span className="text-xs font-medium text-gray-700">Catches</span>
+                <span className="text-sm font-bold text-purple-900">{team2Stats.catches}</span>
+              </div>
+
+              <div className="flex justify-between items-center p-2 bg-purple-50 rounded-lg border border-purple-200">
+                <span className="text-xs font-medium text-gray-700">Misses</span>
+                <span className="text-sm font-bold text-purple-900">{team2Stats.misses}</span>
+              </div>
+
+              <div className="flex justify-between items-center p-2 bg-purple-50 rounded-lg border border-purple-200">
+                <span className="text-xs font-medium text-gray-700">Accuracy</span>
+                <span className="text-sm font-bold text-purple-900">{team2Accuracy}</span>
               </div>
             </div>
           </div>

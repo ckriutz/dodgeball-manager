@@ -30,6 +30,7 @@ export interface PlayerStats {
   times_hit: number;
   missed_throws: number;
   successful_hits: number;
+  games_played: number;
 }
 
 export interface Player {
@@ -85,7 +86,7 @@ export interface League {
 }
 
 // Game types
-export type GameEventType = 'throw' | 'hit' | 'catch' | 'miss' | 'elimination';
+export type GameEventType = 'ball_pickup' | 'throw' | 'hit' | 'catch' | 'miss' | 'elimination';
 
 export interface GameEvent {
   turn: number;
@@ -103,6 +104,7 @@ export interface Game {
   team1_starters: UUID[];
   team2_starters: UUID[];
   events?: GameEvent[]; // Optional: only included in full game details, not in summaries
+  event_count?: number; // Optional: only included in game summaries, not in full details
   winner_id: UUID | null;
   completed_at: string | null;
   seed: number;

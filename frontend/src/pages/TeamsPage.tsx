@@ -19,6 +19,7 @@ import { TeamForm } from '../components/team/TeamForm';
 import { TeamCard } from '../components/team/TeamCard';
 import { TeamRoster } from '../components/team/TeamRoster';
 import { PlayerList } from '../components/player/PlayerList';
+import { Breadcrumbs, type BreadcrumbItem } from '../components/common/Breadcrumbs';
 import { teamApi, leagueApi } from '../services/api';
 import type { Team, Player, League, CreateTeamRequest } from '../types';
 
@@ -28,7 +29,7 @@ type ViewMode = 'list' | 'create' | 'roster';
  * TeamsPage component
  */
 export const TeamsPage: React.FC = () => {
-  const { leagueId } = useParams<{ leagueId: string }>();
+  const { leagueId, teamId } = useParams<{ leagueId: string; teamId?: string }>();
   const navigate = useNavigate();
 
   // State
@@ -95,6 +96,19 @@ export const TeamsPage: React.FC = () => {
 
     loadData();
   }, [leagueId]);
+
+  /**
+   * Auto-select team if teamId is in URL
+   */
+  useEffect(() => {
+    if (teamId && teams.length > 0) {
+      const team = teams.find(t => t.id === teamId);
+      if (team) {
+        setSelectedTeam(team);
+        setViewMode('roster');
+      }
+    }
+  }, [teamId, teams]);
 
   /**
    * Reload selected team
@@ -180,33 +194,6 @@ export const TeamsPage: React.FC = () => {
   };
 
   /**
-   * Handle add player to team
-   */
-  const handleAddPlayer = async (player: Player) => {
-    if (!selectedTeam) return;
-
-    setActionLoading(true);
-    setActionError(null);
-
-    try {
-      const response = await teamApi.addPlayerToTeam(selectedTeam.id, player.id);
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-
-      // Reload team and players
-      await reloadSelectedTeam();
-    } catch (err) {
-      console.error('Failed to add player:', err);
-      setActionError(
-        err instanceof Error ? err.message : 'Failed to add player to roster'
-      );
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  /**
    * Handle remove player from team
    */
   const handleRemovePlayer = async (playerId: string) => {
@@ -280,10 +267,46 @@ export const TeamsPage: React.FC = () => {
   };
 
   /**
-   * Get free agent players
+   * Get free agent players (not on any team)
    */
   const getFreeAgents = (): Player[] => {
     return allPlayers.filter((p) => p.team_id === null);
+  };
+
+  /**
+   * Calculate total spending for selected team
+   */
+  const getTeamSpending = (): number => {
+    if (!selectedTeam) return 0;
+    const teamPlayers = getTeamPlayers();
+    return teamPlayers.reduce((sum, player) => sum + player.value, 0);
+  };
+
+  /**
+   * Handle adding a player to team
+   */
+  const handleAddPlayer = async (player: Player) => {
+    if (!selectedTeam) return;
+
+    setActionLoading(true);
+    setActionError(null);
+
+    try {
+      const response = await teamApi.addPlayerToTeam(selectedTeam.id, player.id);
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      // Reload team and players
+      await reloadSelectedTeam();
+    } catch (err) {
+      console.error('Failed to add player:', err);
+      setActionError(
+        err instanceof Error ? err.message : 'Failed to add player to roster'
+      );
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   /**
@@ -334,34 +357,49 @@ export const TeamsPage: React.FC = () => {
     );
   }
 
+  // Build breadcrumb items
+  const getBreadcrumbs = (): BreadcrumbItem[] => {
+    const items: BreadcrumbItem[] = [
+      { label: 'Leagues', path: '/leagues' },
+    ];
+    
+    if (league) {
+      items.push({ label: league.name, path: `/leagues/${league.id}` });
+      
+      if (viewMode === 'roster' && selectedTeam) {
+        items.push({ 
+          label: 'Teams', 
+          onClick: () => {
+            setSelectedTeam(null);
+            setViewMode('list');
+          }
+        });
+        items.push({ label: selectedTeam.name });
+      } else {
+        items.push({ label: 'Teams' });
+      }
+    }
+    
+    return items;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <button
-            onClick={handleBackToLeague}
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium mb-4"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
-            <span>Back to League</span>
-          </button>
+          <Breadcrumbs items={getBreadcrumbs()} className="mb-4" />
 
           {league && (
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                  {league.name} - Teams
+                  {viewMode === 'roster' && selectedTeam ? selectedTeam.name : `${league.name} - Teams`}
                 </h1>
                 <p className="text-lg text-gray-600">
-                  Create teams and build your roster
+                  {viewMode === 'roster' && selectedTeam 
+                    ? 'Manage your team roster and starters'
+                    : 'Create teams and build your roster'}
                 </p>
               </div>
               {viewMode === 'list' && (
@@ -491,28 +529,9 @@ export const TeamsPage: React.FC = () => {
           </div>
         ) : viewMode === 'roster' && selectedTeam ? (
           <div className="space-y-6">
-            {/* Team Header */}
-            <div className="flex items-start gap-6">
-              <button
-                onClick={() => {
-                  setSelectedTeam(null);
-                  setViewMode('list');
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                  />
-                </svg>
-                <span>Back to Teams</span>
-              </button>
-              <div className="flex-1">
-                <TeamCard team={selectedTeam} showDetails={true} />
-              </div>
+            {/* Team Card */}
+            <div>
+              <TeamCard team={selectedTeam} showDetails={true} />
             </div>
 
             {/* Action Error */}
@@ -562,32 +581,75 @@ export const TeamsPage: React.FC = () => {
               readonly={actionLoading}
             />
 
-            {/* Free Agents Section */}
-            <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                Available Free Agents ({getFreeAgents().length})
-              </h3>
-              <PlayerList
-                players={getFreeAgents()}
-                showStats={true}
-                loading={false}
-                emptyMessage="No free agents available."
-                actionButton={{
-                  label: '+ Add to Team',
-                  onClick: handleAddPlayer,
-                  variant: 'success',
-                  isDisabled: (player) => {
-                    // Disable if team is at max capacity or over budget
-                    if (!selectedTeam) return true;
-                    // Use player_ids length from team object for accurate roster count
-                    if (selectedTeam.player_ids.length >= 12) return true; // Max roster size
-                    const currentRoster = allPlayers.filter(p => p.team_id === selectedTeam.id);
-                    const remainingBudget = selectedTeam.budget - currentRoster.reduce((sum, p) => sum + p.value, 0);
-                    return player.value > remainingBudget;
-                  },
-                }}
-              />
-            </div>
+            {/* Available Players to Draft - Only show if roster not full */}
+            {selectedTeam.player_ids.length < 12 && (
+              <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Available Players</h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Draft free agents to your team roster. You can have up to 12 players on your roster.
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-600">Budget Status</div>
+                    <div className="text-lg font-bold text-gray-900">
+                      ${selectedTeam.budget.toLocaleString()} remaining
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      ${getTeamSpending().toLocaleString()} spent of $15,000
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Budget warning if over budget */}
+                {getTeamSpending() + selectedTeam.budget !== 15000 && (
+                  <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <svg
+                        className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-medium text-red-800">Budget Integrity Issue</p>
+                        <p className="text-sm text-red-700 mt-1">
+                          This team's roster value (${getTeamSpending().toLocaleString()}) plus remaining budget 
+                          (${selectedTeam.budget.toLocaleString()}) should equal $15,000 but equals ${(getTeamSpending() + selectedTeam.budget).toLocaleString()}. 
+                          This indicates a data integrity problem.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <PlayerList
+                  players={getFreeAgents()}
+                  teams={teams}
+                  loading={false}
+                  emptyMessage="No free agents available"
+                  actionButton={{
+                    label: 'Add to Team',
+                    onClick: handleAddPlayer,
+                    variant: 'success',
+                    isDisabled: (player) => {
+                      // Check if player's value exceeds remaining budget
+                      const canAfford = player.value <= selectedTeam.budget;
+                      return !canAfford || actionLoading;
+                    }
+                  }}
+                  leagueId={leagueId}
+                  onPlayerGenerated={reloadSelectedTeam}
+                />
+              </div>
+            )}
           </div>
         ) : (
           /* Team List View */

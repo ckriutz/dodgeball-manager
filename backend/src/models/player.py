@@ -76,6 +76,7 @@ class PlayerStats(BaseModel):
     times_hit: int = Field(default=0, ge=0)
     missed_throws: int = Field(default=0, ge=0)
     successful_hits: int = Field(default=0, ge=0)
+    games_played: int = Field(default=0, ge=0, description="Number of games played as starter")
 
 
 class PlayerSkills(BaseModel):
@@ -312,7 +313,8 @@ class Player(BaseModel):
                     "catches_made": 0,
                     "times_hit": 0,
                     "missed_throws": 0,
-                    "successful_hits": 0
+                    "successful_hits": 0,
+                    "games_played": 0
                 },
                 "league_id": None,
                 "team_id": None,

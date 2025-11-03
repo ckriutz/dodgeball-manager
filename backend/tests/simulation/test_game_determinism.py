@@ -91,7 +91,6 @@ class GameSimulator:
             raise ValueError(f"Team 2 must have exactly 5 starters, got {len(team2_starters)}")
         
         turn = 0
-        attacking_team = 1  # Alternate between 1 and 2
         
         # Continue until one team is eliminated
         while True:
@@ -118,15 +117,9 @@ class GameSimulator:
                 })
                 return 1, self.events
             
-            # Determine thrower and target
-            if attacking_team == 1:
-                thrower = self._select_thrower(team1_active)
-                target = random.choice(team2_active)
-                attacking_team = 2
-            else:
-                thrower = self._select_thrower(team2_active)
-                target = random.choice(team1_active)
-                attacking_team = 1
+            # Determine who picks up the ball based on IQ, speed, and luck
+            thrower, defending_team = self._select_ball_picker(team1_active, team2_active)
+            target = random.choice(defending_team)
             
             # Record throw attempt
             thrower.record_throw_attempt()
@@ -181,12 +174,44 @@ class GameSimulator:
             if turn > 1000:
                 raise RuntimeError("Game exceeded maximum turns (1000)")
     
-    def _select_thrower(self, active_players: List[Player]) -> Player:
-        """Select the player with highest throwing + IQ."""
-        return max(
-            active_players,
-            key=lambda p: p.skills['throwing'] + p.skills['iq']
-        )
+    def _select_ball_picker(
+        self,
+        team1_active: List[Player],
+        team2_active: List[Player]
+    ) -> Tuple[Player, List[Player]]:
+        """
+        Determine which player picks up the ball based on IQ, speed, and luck.
+        
+        Formula: random(IQ/2, IQ) + speed + random(0, luck)
+        
+        Returns:
+            Tuple of (thrower, defending_team)
+        """
+        all_active = team1_active + team2_active
+        
+        # Calculate pickup score for each player
+        scores = []
+        for player in all_active:
+            iq_min = player.skills['iq'] / 2
+            iq_component = random.uniform(iq_min, player.skills['iq'])
+            
+            score = (
+                iq_component +
+                player.skills['speed'] +
+                random.uniform(0, player.skills['luck'])
+            )
+            scores.append((player, score))
+        
+        # Find player with highest score
+        thrower = max(scores, key=lambda x: x[1])[0]
+        
+        # Determine which team is defending
+        if thrower in team1_active:
+            defending_team = team2_active
+        else:
+            defending_team = team1_active
+        
+        return thrower, defending_team
     
     def _calculate_hit_probability(
         self,

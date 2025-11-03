@@ -21,6 +21,7 @@ from enum import Enum
 
 class GameEventType(str, Enum):
     """Types of events that can occur during a game."""
+    BALL_PICKUP = "ball_pickup"
     THROW = "throw"
     HIT = "hit"
     CATCH = "catch"

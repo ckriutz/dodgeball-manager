@@ -12,6 +12,7 @@ interface PlayerCardProps {
   player: Player;
   onClick?: (player: Player) => void;
   showStats?: boolean;
+  compact?: boolean; // Compact mode - minimal display for team rosters
   className?: string;
   teamName?: string; // Optional team name to display
   // Action button configuration
@@ -47,6 +48,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
   player,
   onClick,
   showStats = false,
+  compact = false,
   className = '',
   teamName,
   actionButton,
@@ -94,6 +96,62 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
     ${className}
   `;
 
+  // Compact mode - minimal display for team rosters
+  if (compact) {
+    return (
+      <div className={cardClasses} onClick={handleClick}>
+        {/* Compact Header */}
+        <div className="relative bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+          {injury && (
+            <div className="absolute top-2 right-2">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700 border border-red-200">
+                Injured
+              </span>
+            </div>
+          )}
+          
+          <div className="flex items-center gap-3">
+            {/* Avatar */}
+            <div className="relative">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
+                <img src={`/images/avatars/${avatar}.png`} alt={name} className="w-full h-full rounded-full object-cover" />
+              </div>
+              {is_starter && (
+                <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center shadow-sm">
+                  <span className="text-xs">⭐</span>
+                </div>
+              )}
+            </div>
+
+            {/* Name and Basic Info */}
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-bold text-gray-900 truncate">{name}</h3>
+              <div className="flex items-center gap-2 text-xs text-gray-600 mt-0.5">
+                <span>Age {age}</span>
+                <span>•</span>
+                <span className="text-green-600 font-semibold">{formatValue(value)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Button (if provided) */}
+        {actionButton && (
+          <div className="px-4 pb-3 pt-2">
+            <button
+              onClick={handleActionClick}
+              disabled={actionButton.disabled}
+              className={`w-full ${getActionButtonClasses()}`}
+            >
+              {actionButton.label}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Full-size mode with all details
   return (
     <div className={cardClasses} onClick={handleClick}>
       {/* Header Section with Avatar and Name */}
@@ -164,6 +222,10 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
               <div>
                 <div className="text-xs font-medium text-gray-600 uppercase mb-2">Performance</div>
                 <div className="space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500">Games Played</span>
+                    <span className="font-semibold text-gray-900">{stats.games_played}</span>
+                  </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-500">Eliminations</span>
                     <span className="font-semibold text-gray-900">{stats.successful_hits}</span>

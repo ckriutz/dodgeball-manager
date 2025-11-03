@@ -13,11 +13,12 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { GameSimulator } from '../components/game/GameSimulator';
 import { GameHistory } from '../components/game/GameHistory';
 import { GameStats } from '../components/game/GameStats';
 import { PlayerStats } from '../components/player/PlayerStats';
+import { Breadcrumbs, type BreadcrumbItem } from '../components/common/Breadcrumbs';
 import { gameApi, leagueApi, teamApi } from '../services/api';
 import type { Team, Player, League, Game, CreateGameRequest } from '../types';
 
@@ -28,7 +29,6 @@ type ViewMode = 'simulator' | 'game-detail' | 'player-stats';
  */
 export const GamesPage: React.FC = () => {
   const { leagueId } = useParams<{ leagueId: string }>();
-  const navigate = useNavigate();
 
   // State
   const [viewMode, setViewMode] = useState<ViewMode>('simulator');
@@ -37,7 +37,7 @@ export const GamesPage: React.FC = () => {
   const [playerMap, setPlayerMap] = useState<Record<string, Player>>({});
   const [games, setGames] = useState<Game[]>([]);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
-  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [selectedPlayer] = useState<Player | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [simulationError, setSimulationError] = useState<string | null>(null);
@@ -211,22 +211,58 @@ export const GamesPage: React.FC = () => {
   };
 
   /**
-   * Navigate back to simulator
+   * Get team logo by ID
    */
-  const handleBackToSimulator = () => {
-    setViewMode('simulator');
-    setSelectedGame(null);
-    setSelectedPlayer(null);
+  const getTeamLogo = (teamId: string): string | undefined => {
+    const team = teams.find((t) => t.id === teamId);
+    return team?.logo;
+  };
+
+  // Build breadcrumb items
+  const getBreadcrumbs = (): BreadcrumbItem[] => {
+    const items: BreadcrumbItem[] = [
+      { label: 'Leagues', path: '/leagues' },
+    ];
+    
+    if (league) {
+      items.push({ label: league.name, path: `/leagues/${league.id}` });
+      
+      // Add Games breadcrumb - make it clickable if not in simulator view
+      if (viewMode === 'game-detail' || viewMode === 'player-stats') {
+        items.push({ 
+          label: 'Games',
+          onClick: () => {
+            setViewMode('simulator');
+            setSelectedGame(null);
+            setSimulationError(null);
+          }
+        });
+      } else {
+        items.push({ label: 'Games' });
+      }
+      
+      if (viewMode === 'game-detail' && selectedGame) {
+        const team1 = teams.find((t) => t.id === selectedGame.team1_id);
+        const team2 = teams.find((t) => t.id === selectedGame.team2_id);
+        items.push({ label: `${team1?.name || 'Team 1'} vs ${team2?.name || 'Team 2'}` });
+      } else if (viewMode === 'player-stats' && selectedPlayer) {
+        items.push({ label: selectedPlayer.name });
+      }
+    }
+    
+    return items;
   };
 
   // Loading state
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading game data...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading game data...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -236,21 +272,18 @@ export const GamesPage: React.FC = () => {
   // Error state
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <div className="flex items-center gap-3">
-            <div className="text-red-600 text-2xl">⚠️</div>
-            <div>
-              <h3 className="text-lg font-semibold text-red-800 mb-1">Error Loading Data</h3>
-              <p className="text-sm text-red-700">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <Breadcrumbs items={getBreadcrumbs()} className="mb-6" />
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <div className="flex items-center gap-3">
+              <div className="text-red-600 text-2xl">⚠️</div>
+              <div>
+                <h3 className="text-lg font-semibold text-red-800 mb-1">Error Loading Data</h3>
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
             </div>
           </div>
-          <button
-            onClick={() => navigate(`/leagues/${leagueId}`)}
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-          >
-            Back to League
-          </button>
         </div>
       </div>
     );
@@ -259,31 +292,36 @@ export const GamesPage: React.FC = () => {
   // No league
   if (!league) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <p className="text-yellow-700">League not found</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <Breadcrumbs items={getBreadcrumbs()} className="mb-6" />
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+            <p className="text-yellow-700">League not found</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Game Center</h1>
-            <p className="text-gray-600">{league.name}</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+      <div className="container mx-auto px-4 max-w-7xl">
+        {/* Header */}
+        <div className="mb-6">
+          <Breadcrumbs items={getBreadcrumbs()} className="mb-4" />
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {viewMode === 'game-detail' && selectedGame
+                  ? 'Game Details'
+                  : viewMode === 'player-stats' && selectedPlayer
+                  ? 'Player Stats'
+                  : 'Game Center'}
+              </h1>
+              <p className="text-gray-600">{league.name}</p>
+            </div>
           </div>
-          <button
-            onClick={() => navigate(`/leagues/${leagueId}`)}
-            className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium"
-          >
-            ← Back to League
-          </button>
         </div>
-      </div>
 
       {/* Error Display */}
       {simulationError && (
@@ -351,7 +389,7 @@ export const GamesPage: React.FC = () => {
                           </div>
                           <div className="text-right">
                             <div className="text-xs text-gray-500">
-                              {game.events?.length || 0} events
+                              {game.event_count ?? game.events?.length ?? 0} events
                             </div>
                             {game.completed_at && (
                               <div className="text-xs text-gray-400">
@@ -384,19 +422,13 @@ export const GamesPage: React.FC = () => {
       {/* View Mode: Game Detail */}
       {viewMode === 'game-detail' && selectedGame && (
         <div className="space-y-6">
-          {/* Back Button */}
-          <button
-            onClick={handleBackToSimulator}
-            className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2"
-          >
-            ← Back to Game Center
-          </button>
-
           {/* Game Stats */}
           <GameStats
             game={selectedGame}
             team1Name={getTeamName(selectedGame.team1_id)}
             team2Name={getTeamName(selectedGame.team2_id)}
+            team1Logo={getTeamLogo(selectedGame.team1_id)}
+            team2Logo={getTeamLogo(selectedGame.team2_id)}
             players={playerMap}
           />
 
@@ -412,18 +444,11 @@ export const GamesPage: React.FC = () => {
       {/* View Mode: Player Stats */}
       {viewMode === 'player-stats' && selectedPlayer && (
         <div className="space-y-6">
-          {/* Back Button */}
-          <button
-            onClick={handleBackToSimulator}
-            className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2"
-          >
-            ← Back to Game Center
-          </button>
-
           {/* Player Stats */}
           <PlayerStats player={selectedPlayer} />
         </div>
       )}
+      </div>
     </div>
   );
 };

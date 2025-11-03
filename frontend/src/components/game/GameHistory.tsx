@@ -20,6 +20,8 @@ interface GameHistoryProps {
  */
 const getEventTypeInfo = (type: GameEventType): { icon: string; color: string; label: string } => {
   switch (type) {
+    case 'ball_pickup':
+      return { icon: '🏐', color: 'text-purple-600', label: 'Ball Pickup' };
     case 'throw':
       return { icon: '🎯', color: 'text-blue-600', label: 'Throw' };
     case 'hit':

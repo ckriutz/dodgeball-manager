@@ -15,6 +15,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PlayerList } from '../components/player/PlayerList';
+import { Breadcrumbs, type BreadcrumbItem } from '../components/common/Breadcrumbs';
 import { leagueApi } from '../services/api';
 import type { Player, League, Team } from '../types';
 
@@ -89,8 +90,9 @@ export const PlayersPage: React.FC = () => {
    * Handle player click
    */
   const handlePlayerClick = (player: Player) => {
-    // Navigate to player detail page (not yet implemented)
-    console.log('Player clicked:', player);
+    if (leagueId) {
+      navigate(`/leagues/${leagueId}/players/${player.id}`);
+    }
   };
 
   /**
@@ -122,11 +124,26 @@ export const PlayersPage: React.FC = () => {
 
   const stats = getPlayerStats();
 
+  // Build breadcrumb items
+  const getBreadcrumbs = (): BreadcrumbItem[] => {
+    const items: BreadcrumbItem[] = [
+      { label: 'Leagues', path: '/leagues' },
+    ];
+    
+    if (league) {
+      items.push({ label: league.name, path: `/leagues/${league.id}` });
+      items.push({ label: 'Players' });
+    }
+    
+    return items;
+  };
+
   // Error state
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
         <div className="container mx-auto px-4 max-w-7xl">
+          <Breadcrumbs items={getBreadcrumbs()} className="mb-6" />
           <div className="bg-white rounded-lg shadow-md border border-gray-200 p-8">
             <div className="text-center">
               <svg
@@ -144,12 +161,6 @@ export const PlayersPage: React.FC = () => {
               </svg>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Data</h2>
               <p className="text-gray-600 mb-6">{error}</p>
-              <button
-                onClick={handleBackToLeague}
-                className="px-6 py-3 text-base font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-              >
-                Back to League
-              </button>
             </div>
           </div>
         </div>
@@ -162,20 +173,7 @@ export const PlayersPage: React.FC = () => {
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <button
-            onClick={handleBackToLeague}
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium mb-4"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
-            <span>Back to League</span>
-          </button>
+          <Breadcrumbs items={getBreadcrumbs()} className="mb-4" />
 
           {league && (
             <div>

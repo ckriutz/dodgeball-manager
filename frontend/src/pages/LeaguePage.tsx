@@ -15,6 +15,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { LeagueForm } from '../components/league/LeagueForm';
+import { Breadcrumbs, type BreadcrumbItem } from '../components/common/Breadcrumbs';
 import { leagueApi } from '../services/api';
 import type { League, Player, CreateLeagueRequest } from '../types';
 
@@ -210,19 +211,25 @@ export const LeaguePage: React.FC = () => {
     navigate(`/leagues/${league.id}/teams`);
   };
 
-  /**
-   * Reset and create new league
-   */
-  const handleCreateNewLeague = () => {
-    setLeague(null);
-    setPlayers([]);
-    setError(null);
-    setPlayersError(null);
+  // Build breadcrumb items
+  const getBreadcrumbs = (): BreadcrumbItem[] => {
+    const items: BreadcrumbItem[] = [
+      { label: 'Leagues', path: '/leagues' },
+    ];
+    
+    if (league) {
+      items.push({ label: league.name });
+    }
+    
+    return items;
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
+        {/* Breadcrumbs */}
+        {league && <Breadcrumbs items={getBreadcrumbs()} className="mb-6" />}
+        
         {/* Page Header - Only show when no league is selected */}
         {!league && (
           <div className="mb-8">
@@ -325,30 +332,6 @@ export const LeaguePage: React.FC = () => {
         {/* League Info - Show after league created */}
         {league && (
           <div className="space-y-8">
-            {/* Back to Leagues Button */}
-            <div>
-              <button
-                onClick={() => {
-                  setLeague(null);
-                  setPlayers([]);
-                  setError(null);
-                  setPlayersError(null);
-                  navigate('/leagues', { replace: true });
-                }}
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
-              >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                  />
-                </svg>
-                <span>Back to All Leagues</span>
-              </button>
-            </div>
-
             {/* League Details Card */}
             <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
               <div className="flex items-start justify-between">
@@ -558,34 +541,6 @@ export const LeaguePage: React.FC = () => {
                     </svg>
                     <span>Retry Player Generation</span>
                   </button>
-                </div>
-              </div>
-            ) : players.length > 0 ? (
-              /* Player Summary Section */
-              <div className="bg-white rounded-lg shadow-md border border-gray-200 p-8">
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
-                    <svg
-                      className="h-8 w-8 text-green-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    Player Pool Generated
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    {players.length} players have been created and are ready for team drafting
-                  </p>
-    
                 </div>
               </div>
             ) : null}
