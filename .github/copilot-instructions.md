@@ -3,6 +3,8 @@
 Auto-generated from all feature plans. Last updated: 2025-10-24
 
 ## Active Technologies
+- Python 3.11+ (backend), Node.js 18+ with TypeScript (frontend) + FastAPI, Pydantic (backend); React 18, Tailwind CSS 3 (frontend) (001-fantasy-league)
+- In-memory storage (Python dictionaries/objects, no database/Redis/files) (001-fantasy-league)
 
 - Python 3.11+ (backend), Node.js 18+ with TypeScript (frontend) + FastAPI (backend), React 18, Tailwind CSS 3 (frontend) (001-fantasy-league)
 
@@ -22,6 +24,7 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.11+ (backend), Node.js 18+ with TypeScript (frontend): Follow standard conventions
 
 ## Recent Changes
+- 001-fantasy-league: Added Python 3.11+ (backend), Node.js 18+ with TypeScript (frontend) + FastAPI, Pydantic (backend); React 18, Tailwind CSS 3 (frontend)
 
 - 001-fantasy-league: Added Python 3.11+ (backend), Node.js 18+ with TypeScript (frontend) + FastAPI (backend), React 18, Tailwind CSS 3 (frontend)
 

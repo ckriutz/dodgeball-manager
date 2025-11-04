@@ -172,33 +172,78 @@
 
 ## Phase 6: User Story 4 - League Schedule and Season Management (Priority: P4)
 
-**Goal**: Generate schedules, simulate multiple games in sequence, view standings ranked by wins/losses, track MVPs and statistical leaders
+**Goal**: Generate schedules with game status tracking, track season-long performance including standings/MVPs/awards. Implement XP-based skill progression with manual skill point allocation. Support multi-season play with age progression and historical season archives.
 
-**Independent Test**: Create schedule for all teams, simulate multiple games, view updated standings and cumulative stats, verify MVP tracking
+**Independent Test**: Create schedule for all teams, simulate multiple games using "Play Next Game" button, view updated standings and cumulative stats, allocate skill points for leveled players, complete season with age updates, view historical season data. Delivers a complete multi-season league experience.
 
 ### Tests for User Story 4
 
 - [ ] T085 [P] [US4] Unit test for round-robin schedule generation in backend/tests/unit/test_schedule.py
 - [ ] T086 [P] [US4] Unit test for standings calculation in backend/tests/unit/test_standings.py
 - [ ] T087 [P] [US4] Unit test for MVP/awards calculation in backend/tests/unit/test_awards.py
-- [ ] T088 [P] [US4] Integration test for schedule generation in backend/tests/integration/test_schedule.py
+- [ ] T088 [P] [US4] Unit test for XP calculation and leveling logic in backend/tests/unit/test_skill_progression.py
+- [ ] T089 [P] [US4] Unit test for age progression and stat penalties in backend/tests/unit/test_age_progression.py
+- [ ] T090 [P] [US4] Integration test for schedule generation in backend/tests/integration/test_schedule.py
+- [ ] T091 [P] [US4] Integration test for season completion and archiving in backend/tests/integration/test_seasons.py
 
 ### Implementation for User Story 4
 
-- [ ] T089 [US4] Implement ScheduleService with round-robin algorithm in backend/src/services/schedule_service.py
-- [ ] T090 [US4] Implement StandingsService with ranking logic in backend/src/services/standings_service.py
-- [ ] T091 [US4] Implement AwardsService with MVP calculation in backend/src/services/awards_service.py
-- [ ] T092 [US4] Implement POST /api/leagues/{league_id}/schedule in backend/src/api/leagues.py
-- [ ] T093 [US4] Implement GET /api/leagues/{league_id}/standings in backend/src/api/leagues.py
-- [ ] T094 [US4] Implement GET /api/leagues/{league_id}/awards endpoint in backend/src/api/leagues.py
-- [ ] T095 [P] [US4] Create LeagueStandings component in frontend/src/components/league/LeagueStandings.tsx
-- [ ] T096 [P] [US4] Create LeagueSchedule component in frontend/src/components/league/LeagueSchedule.tsx
-- [ ] T097 [P] [US4] Create LeagueAwards component in frontend/src/components/league/LeagueAwards.tsx
-- [ ] T098 [US4] Update LeaguePage to include standings and awards in frontend/src/pages/LeaguePage.tsx
-- [ ] T099 [US4] Add schedule and standings API methods to frontend/src/services/api.ts
-- [ ] T100 [P] [US4] Component test for LeagueStandings in frontend/tests/components/LeagueStandings.test.tsx
+#### Backend - Data Models
+- [ ] T092 [P] [US4] Add Season model with lifecycle states in backend/src/models/league.py
+- [ ] T093 [P] [US4] Add Schedule model with game status tracking in backend/src/models/game.py
+- [ ] T094 [P] [US4] Add SeasonArchive model for historical records in backend/src/models/league.py
+- [ ] T095 [US4] Update Player model with progression fields (experience_points, level, available_skill_points) in backend/src/models/player.py
+- [ ] T096 [US4] Update Game model to track per-player XP awards in backend/src/models/game.py
 
-**Checkpoint**: User Story 4 complete - full season management with schedules, standings, and awards
+#### Backend - Services
+- [ ] T097 [US4] Implement ScheduleService with round-robin algorithm and status tracking in backend/src/services/schedule_service.py
+- [ ] T098 [US4] Implement StandingsService with ranking logic in backend/src/services/standings_service.py
+- [ ] T099 [US4] Implement AwardsService with MVP calculation in backend/src/services/awards_service.py
+- [ ] T100 [US4] Implement SkillProgressionService with XP calculation and leveling in backend/src/services/skill_progression.py
+- [ ] T101 [US4] Implement AgeProgressionService with stat penalties in backend/src/services/age_service.py
+- [ ] T102 [US4] Implement SeasonService with lifecycle management and archiving in backend/src/services/season_service.py
+- [ ] T103 [US4] Update GameService to award XP after simulation in backend/src/services/game_service.py
+- [ ] T104 [US4] Update PlayerService to handle skill point spending in backend/src/services/player_service.py
+- [ ] T105 [US4] Update player value calculation formula to include level and games_played in backend/src/services/utils.py
+
+#### Backend - API Endpoints
+- [ ] T106 [US4] Implement POST /api/leagues/{league_id}/schedule in backend/src/api/leagues.py
+- [ ] T107 [US4] Implement GET /api/leagues/{league_id}/schedule (with status indicators) in backend/src/api/leagues.py
+- [ ] T108 [US4] Implement GET /api/leagues/{league_id}/standings in backend/src/api/leagues.py
+- [ ] T109 [US4] Implement GET /api/leagues/{league_id}/awards in backend/src/api/leagues.py
+- [ ] T110 [US4] Implement POST /api/leagues/{league_id}/seasons/finish in backend/src/api/leagues.py
+- [ ] T111 [US4] Implement POST /api/leagues/{league_id}/seasons/start in backend/src/api/leagues.py
+- [ ] T112 [US4] Implement GET /api/leagues/{league_id}/seasons/history in backend/src/api/leagues.py
+- [ ] T113 [US4] Implement GET /api/players/{player_id}/progression in backend/src/api/players.py
+- [ ] T114 [US4] Implement POST /api/players/{player_id}/spend-skill-point in backend/src/api/players.py
+- [ ] T115 [US4] Implement POST /api/players/{player_id}/spend-skill-points in backend/src/api/players.py
+- [ ] T116 [US4] Update POST /api/games to return XP awards and level-ups in backend/src/api/games.py
+
+#### Frontend - Components
+- [ ] T117 [P] [US4] Create ProgressionBadge component in frontend/src/components/player/ProgressionBadge.tsx
+- [ ] T118 [P] [US4] Create SkillPointAllocator component in frontend/src/components/player/SkillPointAllocator.tsx
+- [ ] T119 [P] [US4] Create LeagueStandings component in frontend/src/components/league/LeagueStandings.tsx
+- [ ] T120 [P] [US4] Create LeagueSchedule component with status indicators in frontend/src/components/league/LeagueSchedule.tsx
+- [ ] T121 [P] [US4] Create LeagueAwards component in frontend/src/components/league/LeagueAwards.tsx
+- [ ] T122 [P] [US4] Create SeasonHistory component in frontend/src/components/league/SeasonHistory.tsx
+- [ ] T123 [P] [US4] Create SeasonCompletionModal component in frontend/src/components/league/SeasonCompletionModal.tsx
+- [ ] T124 [P] [US4] Update GameResultsModal to show level-up notifications in frontend/src/components/game/GameResultsModal.tsx
+
+#### Frontend - Pages & Integration
+- [ ] T125 [US4] Update PlayerDetailPage to show progression and skill allocation in frontend/src/pages/PlayerDetailPage.tsx
+- [ ] T126 [US4] Update LeaguePage to include standings, schedule, and season history tabs in frontend/src/pages/LeaguePage.tsx
+- [ ] T127 [US4] Update GamesPage with "Play Next Game" button and schedule status in frontend/src/pages/GamesPage.tsx
+- [ ] T128 [US4] Add season and progression API methods to frontend/src/services/api.ts
+- [ ] T129 [US4] Update PlayerCard to show progression badge when skill points available in frontend/src/components/player/PlayerCard.tsx
+- [ ] T130 [US4] Update TypeScript types for Season, Schedule, PlayerProgression in frontend/src/types/index.ts
+
+#### Frontend - Tests
+- [ ] T131 [P] [US4] Component test for ProgressionBadge in frontend/tests/components/ProgressionBadge.test.tsx
+- [ ] T132 [P] [US4] Component test for SkillPointAllocator in frontend/tests/components/SkillPointAllocator.test.tsx
+- [ ] T133 [P] [US4] Component test for LeagueStandings in frontend/tests/components/LeagueStandings.test.tsx
+- [ ] T134 [P] [US4] Component test for SeasonHistory in frontend/tests/components/SeasonHistory.test.tsx
+
+**Checkpoint**: User Story 4 complete - full multi-season management with XP/leveling, skill progression, age updates, and historical archives
 
 ---
 
@@ -206,18 +251,17 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T101 [P] Add comprehensive error handling across all backend endpoints
-- [ ] T102 [P] Add loading states and error displays to all frontend components
-- [ ] T103 [P] Implement responsive design for mobile viewing in frontend/
-- [ ] T104 [P] Add API documentation with Swagger UI configuration in backend/src/main.py
-- [ ] T105 [P] Create age progression system (players age after each season) in backend/src/services/age_service.py
-- [ ] T106 [P] Implement skill improvement after games in backend/src/services/skill_progression.py
-- [ ] T107 [P] Add data export functionality (JSON) in backend/src/api/export.py
-- [ ] T108 [P] Performance optimization for large player pools
-- [ ] T109 [P] Add visual feedback for budget constraints in frontend UI
-- [ ] T110 Run quickstart.md validation end-to-end
-- [ ] T111 [P] Update README.md with final deployment instructions
-- [ ] T112 [P] Create developer documentation in docs/
+- [ ] T135 [P] Add comprehensive error handling across all backend endpoints
+- [ ] T136 [P] Add loading states and error displays to all frontend components
+- [ ] T137 [P] Implement responsive design for mobile viewing in frontend/
+- [ ] T138 [P] Add API documentation with Swagger UI configuration in backend/src/main.py
+- [ ] T139 [P] Add data export functionality (JSON) in backend/src/api/export.py
+- [ ] T140 [P] Performance optimization for large player pools
+- [ ] T141 [P] Add visual feedback for budget constraints in frontend UI
+- [ ] T142 [P] Add visual feedback for XP gain and level-up animations
+- [ ] T143 Run quickstart.md validation end-to-end
+- [ ] T144 [P] Update README.md with final deployment instructions
+- [ ] T145 [P] Create developer documentation in docs/
 
 ---
 
@@ -274,12 +318,14 @@
 - Models: T069 (Game) + T070 (Injury)
 - Components: T077 + T078 + T079 + T080 + T083 + T084
 
-#### User Story 4 - 4 parallel test tasks, 3 parallel component tasks
-- Tests: T085 + T086 + T087 + T088
-- Components: T095 + T096 + T097 + T100
+#### User Story 4 - 7 parallel test tasks, 4 parallel model tasks, 8 parallel component tasks
+- Tests: T085 + T086 + T087 + T088 + T089 + T090 + T091
+- Models: T092 + T093 + T094 + T095 + T096
+- Components: T117 + T118 + T119 + T120 + T121 + T122 + T123 + T124
+- Frontend Tests: T131 + T132 + T133 + T134
 
 #### Phase 7 (Polish) - 10 parallel tasks
-- T101 + T102 + T103 + T104 + T105 + T106 + T107 + T108 + T109 + T111 + T112
+- T135 + T136 + T137 + T138 + T139 + T140 + T141 + T142 + T144 + T145
 
 ---
 
@@ -326,8 +372,8 @@ Task T038: "Create LeagueForm component in frontend/src/components/league/League
 2. **MVP (+ Phase 3)**: +20 tasks → League & Players working (43 total)
 3. **Teams (+ Phase 4)**: +20 tasks → Team drafting working (63 total)
 4. **Games (+ Phase 5)**: +21 tasks → Game simulation working (84 total)
-5. **Season (+ Phase 6)**: +16 tasks → Full season management (100 total)
-6. **Polish (+ Phase 7)**: +12 tasks → Production ready (112 total)
+5. **Season (+ Phase 6)**: +50 tasks → Full season management with XP/leveling (134 total)
+6. **Polish (+ Phase 7)**: +11 tasks → Production ready (145 total)
 
 Each increment adds value without breaking previous functionality.
 
@@ -345,7 +391,7 @@ All can work simultaneously since foundational work is complete. User Story 4 an
 
 ## Task Summary
 
-**Total Tasks**: 112
+**Total Tasks**: 145
 
 **By Phase**:
 - Phase 1 (Setup): 13 tasks
@@ -353,15 +399,15 @@ All can work simultaneously since foundational work is complete. User Story 4 an
 - Phase 3 (User Story 1): 20 tasks
 - Phase 4 (User Story 2): 20 tasks
 - Phase 5 (User Story 3): 21 tasks
-- Phase 6 (User Story 4): 16 tasks
-- Phase 7 (Polish): 12 tasks
+- Phase 6 (User Story 4): 50 tasks
+- Phase 7 (Polish): 11 tasks
 
-**Test Tasks**: 20 (18% test coverage tasks)
-**Backend Tasks**: ~55 (models, services, API endpoints, tests)
-**Frontend Tasks**: ~45 (components, pages, tests)
+**Test Tasks**: 31 (21% test coverage tasks)
+**Backend Tasks**: ~75 (models, services, API endpoints, tests)
+**Frontend Tasks**: ~58 (components, pages, tests)
 **Infrastructure Tasks**: ~12 (setup, config, Docker)
 
-**Parallel Opportunities**: 47 tasks marked [P] can run in parallel
+**Parallel Opportunities**: 70 tasks marked [P] can run in parallel
 
 **MVP Scope**: 43 tasks (Phases 1-3) delivers User Story 1
 

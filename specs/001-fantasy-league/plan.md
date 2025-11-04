@@ -1,50 +1,65 @@
 # Implementation Plan: Dodgeball Fantasy League Core System
 
-**Branch**: `001-fantasy-league` | **Date**: October 24, 2025 | **Spec**: [spec.md](./spec.md)
+**Branch**: `001-fantasy-league` | **Date**: 2025-11-04 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/001-fantasy-league/spec.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
 ## Summary
 
-Build a web application for a dodgeball fantasy league with three core components: Player Management (50-100 randomly generated players with stats and values), Team Management (teams with $100k budgets drafting 8-12 players), and Game Simulation (deterministic dodgeball game engine using player stats). Initial milestone uses in-memory storage, single-user mode, and focuses on core gameplay mechanics. Technical approach: React + Tailwind frontend, Python FastAPI backend, containerized deployment.
+Build a complete fantasy dodgeball league web application with player generation, team management, game simulation, and season scheduling. The system supports multi-season play with player progression (XP/leveling), skill point allocation, age-based stat changes, and historical season tracking. All data stored in-memory (no persistent database). Single-user operation with React/Tailwind frontend and Python FastAPI backend, deployed via Docker containers.
 
 ## Technical Context
 
-**Language/Version**: Python 3.11+ (backend), Node.js 18+ with TypeScript (frontend)  
-**Primary Dependencies**: FastAPI (backend), React 18, Tailwind CSS 3 (frontend)  
-**Storage**: In-memory only for this milestone (no database)  
-**Testing**: pytest (backend), Jest + React Testing Library (frontend)  
-**Target Platform**: Web application (browser-based), Docker containers for deployment
-**Project Type**: Web application (separate frontend and backend)  
-**Performance Goals**: League/player generation <1min, team draft <5min, game simulation <30sec  
-**Constraints**: Single-user mode, deterministic simulation with seed, no persistence  
-**Scale/Scope**: 50-100 players, multiple teams per league, sequential game simulation
+**Language/Version**: Python 3.11+ (backend), Node.js 18+ with TypeScript (frontend)
+**Primary Dependencies**: FastAPI, Pydantic (backend); React 18, Tailwind CSS 3 (frontend)
+**Storage**: In-memory storage (Python dictionaries/objects, no database/Redis/files)
+**Testing**: pytest with coverage (backend); Jest + React Testing Library (frontend)
+**Target Platform**: Linux/macOS server containers (Docker), modern web browsers
+**Project Type**: Web application (separate backend API + frontend SPA)
+**Performance Goals**: 
+  - Game simulation: <30 seconds per game
+  - Player generation: <1 minute for 50-100 players
+  - Full season completion: <15 minutes
+  - API response times: <200ms for non-simulation endpoints
+**Constraints**: 
+  - Single-user system (no authentication, no concurrent access handling)
+  - All data in-memory (resets on server restart)
+  - Deterministic game simulation (given same seed and stats)
+**Scale/Scope**: 
+  - 50-100 players per league
+  - 4-8 teams per league
+  - 8-12 players per team
+  - Round-robin scheduling (N*(N-1) games per season for N teams)
+  - Multiple seasons with historical archives
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- ✅ Frontend MUST use React with Tailwind CSS - **COMPLIANT**: Using React 18 with Tailwind CSS 3
-- ✅ Backend MUST use Python FastAPI - **COMPLIANT**: Using FastAPI for REST API
-- ✅ Code MUST remain simple; complexity must be justified - **COMPLIANT**: In-memory storage, no auth, single-user keeps initial implementation simple
-- ⚠️ Databases MUST use PostgreSQL if needed - **N/A**: No database for this milestone (in-memory only per FR-033)
-- ✅ Deployment MUST use Docker containers - **COMPLIANT**: Docker-based deployment planned
+- ✅ Frontend MUST use React with Tailwind CSS (React 18 + Tailwind CSS 3 specified)
+- ✅ Backend MUST use Python FastAPI (Python 3.11+ with FastAPI specified)
+- ✅ Code MUST remain simple; complexity must be justified (in-memory storage, no over-engineering)
+- ✅ Databases MUST use PostgreSQL if needed (N/A - in-memory storage only for this milestone)
+- ✅ Deployment MUST use Docker containers (Docker + docker-compose specified)
 
-**Gate Status**: ✅ PASS - All applicable requirements met
+**Status**: ✅ PASSES - All constitution requirements satisfied
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
+specs/001-fantasy-league/
 ├── plan.md              # This file (/speckit.plan command output)
-├── research.md          # Phase 0 output (/speckit.plan command)
-├── data-model.md        # Phase 1 output (/speckit.plan command)
-├── quickstart.md        # Phase 1 output (/speckit.plan command)
-├── contracts/           # Phase 1 output (/speckit.plan command)
-└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
+├── spec.md              # Feature specification (completed)
+├── skill-progression-plan.md  # Detailed XP/leveling design (existing)
+├── research.md          # Phase 0 output (to be generated)
+├── data-model.md        # Phase 1 output (to be generated)
+├── quickstart.md        # Phase 1 output (existing, to be updated)
+├── tasks.md             # Task list (existing, to be updated in Phase 2)
+└── contracts/           # Phase 1 output (to be generated)
+    └── openapi.yaml     # API contract (existing, to be updated)
 ```
 
 ### Source Code (repository root)
@@ -52,154 +67,140 @@ specs/[###-feature]/
 ```text
 backend/
 ├── src/
-│   ├── models/              # Domain entities (Player, Team, League, Game, Injury)
-│   ├── services/            # Business logic (PlayerService, TeamService, GameSimulator)
-│   ├── api/                 # FastAPI routes and endpoints
-│   │   ├── players.py
-│   │   ├── teams.py
-│   │   ├── leagues.py
-│   │   └── games.py
-│   ├── storage/             # In-memory storage manager
-│   └── main.py              # FastAPI application entry point
+│   ├── __init__.py
+│   ├── main.py                  # FastAPI app entry point
+│   ├── models/                  # Pydantic data models
+│   │   ├── __init__.py
+│   │   ├── player.py            # Player, PlayerSkills, PlayerStats, PlayerProgression
+│   │   ├── team.py              # Team
+│   │   ├── league.py            # League, Season
+│   │   ├── game.py              # Game, Schedule
+│   │   └── injury.py            # Injury
+│   ├── services/                # Business logic
+│   │   ├── player_service.py   # Player generation, value calc, progression
+│   │   ├── team_service.py     # Roster management, budget
+│   │   ├── league_service.py   # League/season management
+│   │   ├── game_service.py     # Game orchestration
+│   │   ├── game_simulator.py   # Turn-based combat logic
+│   │   ├── stats_service.py    # Statistics tracking
+│   │   ├── injury_service.py   # Injury mechanics
+│   │   ├── skill_progression.py # XP calculation, leveling
+│   │   └── utils.py            # Shared utilities
+│   ├── api/                     # FastAPI route handlers
+│   │   ├── __init__.py
+│   │   ├── errors.py           # Error handling middleware
+│   │   ├── schemas.py          # API request/response schemas
+│   │   ├── leagues.py          # League endpoints
+│   │   ├── teams.py            # Team endpoints
+│   │   ├── players.py          # Player endpoints
+│   │   └── games.py            # Game endpoints
+│   ├── storage/                 # Data persistence
+│   │   └── memory_storage.py  # In-memory storage singleton
+│   └── data/                    # Static data
+│       └── player_names.json   # Name generation data
 ├── tests/
-│   ├── unit/                # Unit tests for services and models
-│   ├── integration/         # API endpoint tests
-│   └── simulation/          # Game simulation tests
+│   ├── __init__.py
+│   ├── conftest.py             # pytest fixtures
+│   ├── unit/                   # Unit tests
+│   │   ├── test_player_generation.py
+│   │   ├── test_player_value.py
+│   │   ├── test_team_budget.py
+│   │   ├── test_team_roster.py
+│   │   ├── test_game_mechanics.py
+│   │   ├── test_injury_system.py
+│   │   └── test_skill_progression.py
+│   ├── integration/            # API integration tests
+│   │   ├── test_leagues.py
+│   │   ├── test_teams.py
+│   │   ├── test_players.py
+│   │   └── test_games.py
+│   └── simulation/             # Game simulation tests
+│       ├── test_game_determinism.py
+│       └── test_game_edge_cases.py
 ├── Dockerfile
-└── requirements.txt
+├── requirements.txt
+├── pyproject.toml
+└── pytest.ini
 
 frontend/
 ├── src/
-│   ├── components/          # Reusable React components
-│   │   ├── player/          # PlayerCard, PlayerList, PlayerStats
-│   │   ├── team/            # TeamCard, TeamRoster, TeamBudget
-│   │   ├── league/          # LeagueStandings, LeagueSettings
-│   │   └── game/            # GameSimulator, GameHistory, GameStats
-│   ├── pages/               # Page-level components
-│   │   ├── LeaguePage.tsx
-│   │   ├── PlayersPage.tsx
-│   │   ├── TeamsPage.tsx
-│   │   └── GamesPage.tsx
-│   ├── services/            # API client services
-│   │   └── api.ts
-│   ├── types/               # TypeScript type definitions
-│   └── App.tsx              # Main application component
+│   ├── main.tsx                # React entry point
+│   ├── App.tsx                 # Root component with routing
+│   ├── index.css               # Tailwind imports
+│   ├── vite-env.d.ts          # Vite type definitions
+│   ├── types/                  # TypeScript type definitions
+│   │   └── index.ts           # Shared types (Player, Team, Game, etc.)
+│   ├── services/              # API client
+│   │   └── api.ts             # HTTP client + all API methods
+│   ├── contexts/              # React contexts
+│   │   └── LeagueContext.tsx # Global league state
+│   ├── pages/                 # Page components
+│   │   ├── LeaguePage.tsx    # League overview, season history
+│   │   ├── PlayersPage.tsx   # Player pool browsing
+│   │   ├── PlayerDetailPage.tsx # Individual player + skill allocation
+│   │   ├── TeamsPage.tsx     # Team list and management
+│   │   └── GamesPage.tsx     # Schedule, game simulation
+│   └── components/            # Reusable components
+│       ├── common/            # Shared UI components
+│       │   ├── Button.tsx
+│       │   ├── Card.tsx
+│       │   └── Badge.tsx
+│       ├── player/            # Player-related components
+│       │   ├── PlayerCard.tsx
+│       │   ├── PlayerList.tsx
+│       │   ├── PlayerStats.tsx
+│       │   ├── ProgressionBadge.tsx
+│       │   └── SkillPointAllocator.tsx
+│       ├── team/              # Team-related components
+│       │   ├── TeamCard.tsx
+│       │   ├── TeamRoster.tsx
+│       │   ├── TeamBudget.tsx
+│       │   └── TeamForm.tsx
+│       ├── game/              # Game-related components
+│       │   ├── GameSimulator.tsx
+│       │   ├── GameHistory.tsx
+│       │   ├── GameStats.tsx
+│       │   └── GameResultsModal.tsx
+│       └── league/            # League-related components
+│           ├── LeagueForm.tsx
+│           ├── LeagueStandings.tsx
+│           ├── LeagueSchedule.tsx
+│           ├── LeagueAwards.tsx
+│           └── SeasonHistory.tsx
 ├── tests/
-│   ├── components/          # Component tests
-│   └── integration/         # E2E tests
+│   ├── setup.ts
+│   ├── __mocks__/
+│   │   └── fileMock.js
+│   └── components/
+│       ├── PlayerCard.test.tsx
+│       ├── PlayerList.test.tsx
+│       ├── TeamRoster.test.tsx
+│       ├── TeamBudget.test.tsx
+│       ├── GameSimulator.test.tsx
+│       └── GameHistory.test.tsx
+├── public/
+│   └── images/
+│       ├── avatars/           # Player avatar placeholders
+│       └── team_avatars/      # Team logo placeholders
 ├── Dockerfile
+├── nginx.conf                 # Production nginx config
 ├── package.json
-└── tailwind.config.js
+├── tsconfig.json
+├── vite.config.ts
+├── tailwind.config.js
+├── postcss.config.js
+├── eslint.config.js
+└── jest.config.js
 
-docker-compose.yml           # Orchestration for local development
-README.md                    # Setup and run instructions
+# Root files
+docker-compose.yml             # Orchestrates backend + frontend containers
+README.md                      # Project setup and running instructions
 ```
 
-**Structure Decision**: Web application structure selected based on React frontend + FastAPI backend requirements from constitution. Separation allows independent scaling and development of UI and API layers. In-memory storage simplifies backend by eliminating database layer for this milestone.
+**Structure Decision**: Web application with separate backend API and frontend SPA. Backend follows service-oriented architecture with clear separation of models, business logic, and API handlers. Frontend uses component-based architecture with pages for routing and reusable components. In-memory storage singleton manages all data. Docker containers for both services with docker-compose for local development.
 
 ## Complexity Tracking
 
-> **No violations requiring justification** - All constitution requirements are met without compromise.
+> **No violations - section retained for reference only**
 
-## Phase 0: Research Complete ✅
-
-**Output**: [research.md](./research.md)
-
-**Key Decisions Made**:
-1. **Player Value Formula**: Weighted skill sum with age discount (skills × $100 × age_factor)
-2. **Game Simulation**: Turn-based probabilistic combat with stat-based outcomes
-3. **Storage Strategy**: Singleton in-memory storage manager with typed collections
-4. **Injury Mechanics**: 5% probability on hits, 3 severity levels, time-based healing
-5. **Schedule Algorithm**: Round-robin tournament with optional repeat rounds
-6. **State Management**: React Context API for global state
-7. **API Design**: RESTful with resource-based endpoints
-8. **Testing Strategy**: Multi-layered (unit, simulation, integration, component)
-
-**Technology Stack**:
-- Backend: Python 3.11+, FastAPI 0.104+, pytest, Pydantic v2
-- Frontend: React 18, TypeScript 5+, Tailwind CSS 3, Vite, Jest
-- Infrastructure: Docker, docker-compose
-
-All NEEDS CLARIFICATION items resolved. No open research questions.
-
-## Phase 1: Design & Contracts Complete ✅
-
-**Outputs**:
-- [data-model.md](./data-model.md) - Entity definitions and relationships
-- [contracts/openapi.yaml](./contracts/openapi.yaml) - REST API specification
-- [quickstart.md](./quickstart.md) - Setup and usage guide
-- [.github/copilot-instructions.md](../../.github/copilot-instructions.md) - Agent context updated
-
-**Data Model Summary**:
-- 5 core entities: Player, Team, League, Game, Injury
-- All validation rules from functional requirements mapped
-- State transitions defined for each entity
-- Calculated fields specified (value, effective_skills, standings)
-- In-memory indexes designed for O(1) lookups
-
-**API Contracts Summary**:
-- 15 REST endpoints covering all user stories
-- Full OpenAPI 3.1 specification with schemas
-- Request/response examples for all operations
-- Error responses defined
-- Resource-based URL structure
-
-**Agent Context Update**:
-- GitHub Copilot context file created
-- Technologies: Python 3.11+, TypeScript, FastAPI, React 18, Tailwind CSS 3
-- Project type: Web application (frontend + backend)
-- Storage: In-memory only for this milestone
-
-## Constitution Re-check (Post-Design) ✅
-
-- ✅ Frontend uses React with Tailwind CSS - **CONFIRMED**: React 18 + Tailwind CSS 3
-- ✅ Backend uses Python FastAPI - **CONFIRMED**: FastAPI with async endpoints
-- ✅ Code remains simple - **CONFIRMED**: No over-engineering, YAGNI principles applied
-- ✅ Database would use PostgreSQL - **N/A**: In-memory only, no database this milestone
-- ✅ Deployment uses Docker - **CONFIRMED**: Dockerfile for both services, docker-compose orchestration
-
-**Final Gate Status**: ✅✅ PASS - Design maintains constitution compliance
-
-## Phase 2: Task Breakdown
-
-**Status**: ⏳ NOT STARTED - Run `/speckit.tasks` to generate task breakdown
-
-The planning phase is complete. The next step is to run `/speckit.tasks` to break down the implementation into concrete development tasks based on the user stories and technical design.
-
-## Summary
-
-**Feature**: Dodgeball Fantasy League Core System  
-**Branch**: 001-fantasy-league  
-**Status**: Planning Complete, Ready for Task Breakdown
-
-**What Was Delivered**:
-1. ✅ Technical context and architecture decisions
-2. ✅ Constitution compliance verification (passed)
-3. ✅ Research document with 8 key design decisions
-4. ✅ Data model with 5 entities and relationships
-5. ✅ OpenAPI contract with 15 REST endpoints
-6. ✅ Quickstart guide for developers
-7. ✅ Agent context updated (GitHub Copilot)
-
-**Next Command**: `/speckit.tasks` to create implementation tasks
-
-**Key Technical Choices**:
-- **Architecture**: Separate React frontend + FastAPI backend
-- **Storage**: In-memory (no database) for simplicity
-- **State**: React Context API (no Redux)
-- **Testing**: Multi-layered (80%+ coverage target)
-- **Deployment**: Docker containers with docker-compose
-
-**Performance Targets**:
-- League/player generation: <1 minute
-- Team draft: <5 minutes  
-- Game simulation: <30 seconds
-
-**Scope Boundaries**:
-- ✅ Player generation with stats and values
-- ✅ Team creation and roster management
-- ✅ Game simulation with dodgeball rules
-- ✅ Schedule and standings tracking
-- ❌ User authentication (future)
-- ❌ Persistent storage (future)
-- ❌ Multi-user support (future)
+All constitution requirements are satisfied without exceptions. The project uses React + Tailwind CSS for frontend, Python FastAPI for backend, Docker for deployment, and maintains simplicity through in-memory storage and straightforward service architecture.
