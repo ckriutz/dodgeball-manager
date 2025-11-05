@@ -178,13 +178,13 @@
 
 ### Tests for User Story 4
 
-- [ ] T085 [P] [US4] Unit test for round-robin schedule generation in backend/tests/unit/test_schedule.py
-- [ ] T086 [P] [US4] Unit test for standings calculation in backend/tests/unit/test_standings.py
-- [ ] T087 [P] [US4] Unit test for MVP/awards calculation in backend/tests/unit/test_awards.py
-- [ ] T088 [P] [US4] Unit test for XP calculation and leveling logic in backend/tests/unit/test_skill_progression.py
-- [ ] T089 [P] [US4] Unit test for age progression and stat penalties in backend/tests/unit/test_age_progression.py
-- [ ] T090 [P] [US4] Integration test for schedule generation in backend/tests/integration/test_schedule.py
-- [ ] T091 [P] [US4] Integration test for season completion and archiving in backend/tests/integration/test_seasons.py
+- [X] T085 [P] [US4] Unit test for round-robin schedule generation in backend/tests/unit/test_schedule.py
+- [X] T086 [P] [US4] Unit test for standings calculation in backend/tests/unit/test_standings.py
+- [X] T087 [P] [US4] Unit test for MVP/awards calculation in backend/tests/unit/test_awards.py
+- [X] T088 [P] [US4] Unit test for XP calculation and leveling logic in backend/tests/unit/test_skill_progression.py
+- [X] T089 [P] [US4] Unit test for age progression and stat penalties in backend/tests/unit/test_age_progression.py
+- [X] T090 [P] [US4] Integration test for schedule generation in backend/tests/integration/test_schedule.py
+- [X] T091 [P] [US4] Integration test for season completion and archiving in backend/tests/integration/test_seasons.py
 
 ### Implementation for User Story 4
 
