@@ -8,9 +8,10 @@ References:
 - FR-026: Both teams must have 5 starters
 - FR-029: Game must end when one team fully eliminated
 - NFR-003: Deterministic simulation with seed
+- T103: Award XP to players after game simulation
 """
 
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import random
 from datetime import datetime, timezone
 
@@ -22,6 +23,7 @@ from .team_service import TeamService
 from .player_service import PlayerService
 from .stats_service import StatsService
 from .game_simulator import GameSimulator
+from .skill_progression import calculate_game_xp
 
 
 class GameService:
@@ -66,6 +68,36 @@ class GameService:
             
         Returns:
             Completed Game instance
+            
+        Raises:
+            ValueError: If teams don't exist, aren't in league, or don't have starters
+        """
+        game, _ = self.create_and_simulate_game_with_xp(league_id, team1_id, team2_id, seed)
+        return game
+
+    def create_and_simulate_game_with_xp(
+        self,
+        league_id: str,
+        team1_id: str,
+        team2_id: str,
+        seed: Optional[int] = None
+    ) -> tuple[Game, Dict[str, Any]]:
+        """
+        Create a new game between two teams, simulate it, and return XP results.
+        
+        Args:
+            league_id: League UUID
+            team1_id: First team UUID
+            team2_id: Second team UUID
+            seed: Optional random seed for deterministic simulation
+            
+        Returns:
+            Tuple of (Completed Game instance, XP results dictionary)
+            XP results format:
+            {
+                "xp_awards": {player_id: {"xp_earned": int, "levels_gained": int, "new_level": int}},
+                "level_ups": [list of player_ids who leveled up]
+            }
             
         Raises:
             ValueError: If teams don't exist, aren't in league, or don't have starters
@@ -116,10 +148,10 @@ class GameService:
         game_dict['id'] = game_id
         game = Game(**game_dict)
         
-        # Simulate the game
-        simulated_game = self.simulate_game(game_id)
+        # Simulate the game and get XP results
+        simulated_game, xp_results = self.simulate_game_with_xp(game_id)
         
-        return simulated_game
+        return simulated_game, xp_results
 
     def simulate_game(self, game_id: str) -> Game:
         """
@@ -130,6 +162,27 @@ class GameService:
             
         Returns:
             Completed Game instance
+            
+        Raises:
+            ValueError: If game not found or not ready to simulate
+        """
+        game, _ = self.simulate_game_with_xp(game_id)
+        return game
+
+    def simulate_game_with_xp(self, game_id: str) -> tuple[Game, Dict[str, Any]]:
+        """
+        Simulate a game and return XP results.
+        
+        Args:
+            game_id: Game UUID
+            
+        Returns:
+            Tuple of (Completed Game instance, XP results dictionary)
+            XP results format:
+            {
+                "xp_awards": {player_id: {"xp_earned": int, "levels_gained": int, "new_level": int}},
+                "level_ups": [list of player_ids who leveled up]
+            }
             
         Raises:
             ValueError: If game not found or not ready to simulate
@@ -151,13 +204,14 @@ class GameService:
         simulator = GameSimulator(game, seed)
         completed_game = simulator.simulate()
         
-        # Update storage with completed game
+        # Update player and team stats, and award XP
+        # This also populates completed_game.player_xp_awards and player_level_ups
+        xp_results = self._update_stats_after_game(completed_game)
+        
+        # Update storage with completed game (including XP awards and level-ups)
         self.storage.update_game(game_id, completed_game.model_dump())
         
-        # Update player and team stats
-        self._update_stats_after_game(completed_game)
-        
-        return completed_game
+        return completed_game, xp_results
 
     def get_game(self, game_id: str) -> Optional[Game]:
         """
@@ -204,13 +258,27 @@ class GameService:
             if game.team1_id == team_id or game.team2_id == team_id
         ]
 
-    def _update_stats_after_game(self, game: Game) -> None:
+    def _update_stats_after_game(self, game: Game) -> Dict[str, Any]:
         """
         Update player and team statistics after a game completes.
+        Awards XP to all participating players based on performance.
+        Also updates the game entity with XP awards and level-ups.
         
         Args:
             game: Completed Game instance
+            
+        Returns:
+            Dictionary with XP awards and level-ups for each player
+            {
+                "xp_awards": {player_id: {"xp_earned": int, "levels_gained": int, "new_level": int}},
+                "level_ups": [list of player_ids who leveled up]
+            }
         """
+        xp_results = {
+            "xp_awards": {},
+            "level_ups": []
+        }
+        
         # Update team records
         winner_id = game.winner_id
         loser_id = game.get_loser_id()
@@ -227,8 +295,111 @@ class GameService:
                 self.stats_service.update_team_record(loser_team, is_win=False)
                 self.storage.update_team(loser_id, loser_team.model_dump())
         
-        # Player stats are updated by the GameSimulator during simulation
-        # The simulator already updates the storage, so no additional work needed here
+        # Award XP to all starters from both teams
+        # Get player stats from the game events
+        player_game_stats = self._extract_player_stats_from_game(game)
+        
+        all_starters = game.team1_starters + game.team2_starters
+        for player_id in all_starters:
+            player = self.player_service.get_player(player_id)
+            if not player:
+                continue
+            
+            # Determine if player was on winning team
+            is_winner = (
+                (player_id in game.team1_starters and game.winner_id == game.team1_id) or
+                (player_id in game.team2_starters and game.winner_id == game.team2_id)
+            )
+            
+            # Get player's stats from this game
+            stats = player_game_stats.get(player_id, {
+                "throws_attempted": 0,
+                "catches_made": 0,
+                "successful_hits": 0,
+                "times_hit": 0
+            })
+            
+            # Calculate XP earned
+            xp_earned = calculate_game_xp(
+                throws_attempted=stats["throws_attempted"],
+                catches_made=stats["catches_made"],
+                successful_hits=stats["successful_hits"],
+                times_hit=stats["times_hit"],
+                is_winner=is_winner
+            )
+            
+            # Award XP and track level-ups
+            old_level = player.stats.level
+            levels_gained = player.stats.award_xp(xp_earned)
+            new_level = player.stats.level
+            
+            # Record XP award on the game entity (T116)
+            game.award_player_xp(player_id, xp_earned)
+            
+            # Record level-up on the game entity if player leveled up (T116)
+            if levels_gained > 0:
+                game.record_player_level_up(player_id, new_level)
+            
+            # Store XP results
+            xp_results["xp_awards"][player_id] = {
+                "xp_earned": xp_earned,
+                "levels_gained": levels_gained,
+                "new_level": new_level,
+                "old_level": old_level
+            }
+            
+            if levels_gained > 0:
+                xp_results["level_ups"].append(player_id)
+            
+            # Update player in storage
+            self.storage.update_player(player_id, player.model_dump())
+        
+        return xp_results
+
+    def _extract_player_stats_from_game(self, game: Game) -> Dict[str, Dict[str, int]]:
+        """
+        Extract per-player statistics from game events.
+        
+        This method analyzes game events to determine each player's
+        performance stats for XP calculation.
+        
+        Args:
+            game: Completed Game instance
+            
+        Returns:
+            Dictionary mapping player_id to their game stats
+        """
+        stats = {}
+        
+        # Initialize stats for all starters
+        for player_id in game.team1_starters + game.team2_starters:
+            stats[player_id] = {
+                "throws_attempted": 0,
+                "catches_made": 0,
+                "successful_hits": 0,
+                "times_hit": 0
+            }
+        
+        # Parse events to count stats
+        for event in game.events:
+            if event.type.value == "throw":
+                # Thrower made a throw attempt
+                if event.thrower_id and event.thrower_id in stats:
+                    stats[event.thrower_id]["throws_attempted"] += 1
+            
+            elif event.type.value == "hit":
+                # Thrower got a successful hit, target was hit
+                if event.thrower_id and event.thrower_id in stats:
+                    stats[event.thrower_id]["successful_hits"] += 1
+                if event.target_id and event.target_id in stats:
+                    stats[event.target_id]["times_hit"] += 1
+            
+            elif event.type.value == "catch":
+                # Target caught the ball
+                if event.target_id and event.target_id in stats:
+                    stats[event.target_id]["catches_made"] += 1
+        
+        return stats
 
     def count_games(self) -> int:
         """

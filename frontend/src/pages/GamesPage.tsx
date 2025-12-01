@@ -8,11 +8,13 @@
  * - View game statistics
  * - View player statistics
  * - Browse past game history
+ * - Play Next Game from schedule
+ * - Schedule status display
  * 
  * This page integrates GameSimulator, GameHistory, GameStats, and PlayerStats components.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { GameSimulator } from '../components/game/GameSimulator';
 import { GameHistory } from '../components/game/GameHistory';
@@ -20,7 +22,7 @@ import { GameStats } from '../components/game/GameStats';
 import { PlayerStats } from '../components/player/PlayerStats';
 import { Breadcrumbs, type BreadcrumbItem } from '../components/common/Breadcrumbs';
 import { gameApi, leagueApi, teamApi } from '../services/api';
-import type { Team, Player, League, Game, CreateGameRequest } from '../types';
+import type { Team, Player, League, Game, CreateGameRequest, LeagueScheduleItem } from '../types';
 
 type ViewMode = 'simulator' | 'game-detail' | 'player-stats';
 
@@ -36,11 +38,13 @@ export const GamesPage: React.FC = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [playerMap, setPlayerMap] = useState<Record<string, Player>>({});
   const [games, setGames] = useState<Game[]>([]);
+  const [schedule, setSchedule] = useState<LeagueScheduleItem[]>([]);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [selectedPlayer] = useState<Player | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [simulationError, setSimulationError] = useState<string | null>(null);
+  const [playingNextGame, setPlayingNextGame] = useState(false);
 
   /**
    * Load league, teams, players, and games on mount
@@ -96,6 +100,14 @@ export const GamesPage: React.FC = () => {
         }
         const gamesData = gamesResponse.data as Game[];
         setGames(gamesData);
+
+        // Load schedule for this league
+        const scheduleResponse = await leagueApi.getSchedule(leagueId);
+        if (!scheduleResponse.error && scheduleResponse.data) {
+          // The API returns an object with a schedule array property
+          const scheduleData = scheduleResponse.data as { schedule: LeagueScheduleItem[] };
+          setSchedule(scheduleData.schedule || []);
+        }
       } catch (err) {
         console.error('Failed to load data:', err);
         setError(
@@ -159,6 +171,13 @@ export const GamesPage: React.FC = () => {
           });
           setPlayerMap(map);
         }
+
+        // Refresh schedule to update completed status
+        const scheduleResponse = await leagueApi.getSchedule(leagueId);
+        if (!scheduleResponse.error && scheduleResponse.data) {
+          const scheduleData = scheduleResponse.data as { schedule: LeagueScheduleItem[] };
+          setSchedule(scheduleData.schedule || []);
+        }
       }
 
       // Show the new game
@@ -217,6 +236,44 @@ export const GamesPage: React.FC = () => {
     const team = teams.find((t) => t.id === teamId);
     return team?.logo;
   };
+
+  /**
+   * Get the next unplayed game from the schedule
+   */
+  const nextScheduledGame = schedule.find((item) => !item.completed);
+
+  /**
+   * Get schedule statistics
+   */
+  const scheduleStats = {
+    total: schedule.length,
+    completed: schedule.filter((item) => item.completed).length,
+    remaining: schedule.filter((item) => !item.completed).length,
+  };
+
+  /**
+   * Handle playing the next scheduled game
+   */
+  const handlePlayNextGame = useCallback(async () => {
+    if (!nextScheduledGame || !leagueId) return;
+
+    setPlayingNextGame(true);
+    setSimulationError(null);
+
+    try {
+      const request: CreateGameRequest = {
+        league_id: leagueId,
+        team1_id: nextScheduledGame.team1_id,
+        team2_id: nextScheduledGame.team2_id,
+      };
+
+      await handleSimulateGame(request);
+    } catch (err) {
+      // Error is already handled by handleSimulateGame
+    } finally {
+      setPlayingNextGame(false);
+    }
+  }, [nextScheduledGame, leagueId]);
 
   // Build breadcrumb items
   const getBreadcrumbs = (): BreadcrumbItem[] => {
@@ -342,6 +399,85 @@ export const GamesPage: React.FC = () => {
       {/* View Mode: Simulator */}
       {viewMode === 'simulator' && (
         <div className="space-y-8">
+          {/* Schedule Status and Play Next Game */}
+          {schedule.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4">
+                <h2 className="text-xl font-bold text-white">Season Schedule</h2>
+                <p className="text-emerald-100 text-sm mt-1">
+                  {scheduleStats.completed} of {scheduleStats.total} games completed
+                </p>
+              </div>
+              <div className="p-6">
+                {/* Progress Bar */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="text-gray-600">Season Progress</span>
+                    <span className="font-medium text-gray-900">
+                      {scheduleStats.total > 0 
+                        ? Math.round((scheduleStats.completed / scheduleStats.total) * 100)
+                        : 0}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-emerald-500 to-teal-500 h-3 rounded-full transition-all duration-500"
+                      style={{ 
+                        width: scheduleStats.total > 0 
+                          ? `${(scheduleStats.completed / scheduleStats.total) * 100}%`
+                          : '0%'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Next Game or Season Complete */}
+                {nextScheduledGame ? (
+                  <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg p-4 border border-emerald-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm text-emerald-600 font-medium mb-1">
+                          Next Scheduled Game (#{nextScheduledGame.game_number})
+                        </div>
+                        <div className="text-lg font-bold text-gray-900">
+                          {getTeamName(nextScheduledGame.team1_id)} vs {getTeamName(nextScheduledGame.team2_id)}
+                        </div>
+                        <div className="text-sm text-gray-500 mt-1">
+                          {scheduleStats.remaining} game{scheduleStats.remaining !== 1 ? 's' : ''} remaining
+                        </div>
+                      </div>
+                      <button
+                        onClick={handlePlayNextGame}
+                        disabled={playingNextGame}
+                        className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        {playingNextGame ? (
+                          <>
+                            <span className="animate-spin">⏳</span>
+                            Simulating...
+                          </>
+                        ) : (
+                          <>
+                            <span>🎮</span>
+                            Play Next Game
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg p-6 border border-amber-200 text-center">
+                    <div className="text-4xl mb-3">🏆</div>
+                    <h3 className="text-lg font-bold text-amber-900">Season Complete!</h3>
+                    <p className="text-sm text-amber-700 mt-1">
+                      All {scheduleStats.total} scheduled games have been played.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Game Simulator */}
           <GameSimulator
             leagueId={leagueId!}

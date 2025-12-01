@@ -71,41 +71,62 @@ def reset_player_names() -> None:
     _used_player_names = set()
 
 
-def calculate_player_value(skills: Dict[str, int], age: int) -> int:
+def calculate_player_value(
+    skills: Dict[str, int],
+    age: int,
+    level: int = 1,
+    games_played: int = 0
+) -> int:
     """
-    Calculate a player's dollar value based on skills and age.
+    Calculate a player's dollar value based on skills, age, level, and games played.
     
-    Formula:
-        base_value = sum(all_skills) * 100
-        age_factor = 1.0 if age < 30 else max(0.5, 1.0 - ((age - 30) * 0.05))
-        player_value = int(base_value * age_factor)
+    Comprehensive Formula (Updated Nov 4, 2025):
+        base_value = (
+            (sum_of_skills * 100) +           # Skills: primary factor
+            (games_played * 50) +             # Experience bonus
+            (level * 200) -                   # Progression bonus
+            (age_penalty_after_30)            # Age penalty
+        )
+        age_penalty = max(0, (age - 30) * 500)  # 500 per year over 30
     
     Args:
         skills: Dictionary of skill name to skill value (0-100)
         age: Player age
+        level: Player level (default 1 for new players)
+        games_played: Number of games played (default 0 for new players)
     
     Returns:
         Integer dollar value (no cents)
     
     Examples:
         >>> skills = {'catching': 2, 'throwing': 2, 'dodging': 2, 'speed': 2, 'iq': 1, 'luck': 1}
-        >>> calculate_player_value(skills, 19)
-        1000
-        >>> calculate_player_value(skills, 35)
-        750
+        >>> calculate_player_value(skills, 19)  # New player
+        1200
+        >>> calculate_player_value(skills, 19, level=3, games_played=10)  # Growing player
+        2100
+        >>> skills_advanced = {'catching': 10, 'throwing': 10, 'dodging': 10, 'speed': 10, 'iq': 10, 'luck': 10}
+        >>> calculate_player_value(skills_advanced, 25, level=8, games_played=50)
+        10100
+        >>> calculate_player_value(skills_advanced, 32, level=15, games_played=100)  # With age penalty
+        14000
     """
-    # Calculate base value: sum of all skills * $100
-    base_value = sum(skills.values()) * 100
+    # Calculate skill component: sum of all skills * 100
+    skill_value = sum(skills.values()) * 100
     
-    # Apply age discount factor
-    if age < 30:
-        age_factor = 1.0
-    else:
-        # 5% reduction per year after 30, minimum 50%
-        age_factor = max(0.5, 1.0 - ((age - 30) * 0.05))
+    # Calculate experience bonus: games_played * 50
+    experience_bonus = games_played * 50
     
-    # Return integer value
-    return int(base_value * age_factor)
+    # Calculate progression bonus: level * 200
+    progression_bonus = level * 200
+    
+    # Calculate age penalty: 500 per year over 30 (minimum 0)
+    age_penalty = max(0, (age - 30) * 500)
+    
+    # Calculate total value
+    total_value = skill_value + experience_bonus + progression_bonus - age_penalty
+    
+    # Ensure value is never negative
+    return max(0, int(total_value))
 
 
 def validate_skill_distribution(skills: Dict[str, int], total_required: int = 10) -> Tuple[bool, str]:

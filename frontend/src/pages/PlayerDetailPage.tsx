@@ -5,15 +5,19 @@
  * - Full player information
  * - All skills with visual bars
  * - Complete performance statistics
+ * - Player progression (level, XP, skill points)
+ * - Skill point allocation when available
  * - Game history
  * - Injury status
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { Player, Team, PlayerSkills } from '../types';
 import api from '../services/api';
 import { Breadcrumbs } from '../components/common/Breadcrumbs';
+import { ProgressionBadge } from '../components/player/ProgressionBadge';
+import { SkillPointAllocator } from '../components/player/SkillPointAllocator';
 
 /**
  * Format dollar value with comma separators
@@ -42,54 +46,75 @@ export const PlayerDetailPage: React.FC = () => {
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showSkillAllocator, setShowSkillAllocator] = useState(false);
+
+  const fetchPlayerData = useCallback(async () => {
+    if (!leagueId || !playerId) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch all players to find the one we need
+      const playersResponse = await api.league.getPlayers(leagueId);
+      if (playersResponse.error) {
+        throw new Error(playersResponse.error.message);
+      }
+      
+      const playersData = playersResponse.data as Player[];
+      const foundPlayer = playersData.find((p: Player) => p.id === playerId);
+
+      if (!foundPlayer) {
+        setError('Player not found');
+        return;
+      }
+
+      setPlayer(foundPlayer);
+
+      // If player is on a team, fetch team details
+      if (foundPlayer.team_id) {
+        try {
+          const teamResponse = await api.team.getTeam(foundPlayer.team_id);
+          if (teamResponse.error) {
+            console.error('Error fetching team:', teamResponse.error);
+          } else {
+            setTeam(teamResponse.data as Team);
+          }
+        } catch (err) {
+          console.error('Error fetching team:', err);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching player:', err);
+      setError('Failed to load player data');
+    } finally {
+      setLoading(false);
+    }
+  }, [leagueId, playerId]);
 
   useEffect(() => {
-    const fetchPlayerData = async () => {
-      if (!leagueId || !playerId) return;
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Fetch all players to find the one we need
-        const playersResponse = await api.league.getPlayers(leagueId);
-        if (playersResponse.error) {
-          throw new Error(playersResponse.error.message);
-        }
-        
-        const playersData = playersResponse.data as Player[];
-        const foundPlayer = playersData.find((p: Player) => p.id === playerId);
-
-        if (!foundPlayer) {
-          setError('Player not found');
-          return;
-        }
-
-        setPlayer(foundPlayer);
-
-        // If player is on a team, fetch team details
-        if (foundPlayer.team_id) {
-          try {
-            const teamResponse = await api.team.getTeam(foundPlayer.team_id);
-            if (teamResponse.error) {
-              console.error('Error fetching team:', teamResponse.error);
-            } else {
-              setTeam(teamResponse.data as Team);
-            }
-          } catch (err) {
-            console.error('Error fetching team:', err);
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching player:', err);
-        setError('Failed to load player data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchPlayerData();
-  }, [leagueId, playerId]);
+  }, [fetchPlayerData]);
+
+  /**
+   * Handle skill point allocation
+   */
+  const handleAllocateSkillPoints = async (allocations: Record<string, number>) => {
+    if (!playerId) return;
+    
+    try {
+      const response = await api.player.spendSkillPoints(playerId, allocations);
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+      
+      // Refresh player data to get updated stats
+      await fetchPlayerData();
+      setShowSkillAllocator(false);
+    } catch (err) {
+      throw err; // Let the SkillPointAllocator handle the error display
+    }
+  };
 
   if (loading) {
     return (
@@ -181,7 +206,14 @@ export const PlayerDetailPage: React.FC = () => {
 
             {/* Player Info */}
             <div className="flex-1">
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">{name}</h1>
+              <div className="flex items-center gap-4 mb-2">
+                <h1 className="text-4xl font-bold text-gray-900">{name}</h1>
+                <ProgressionBadge 
+                  player={player} 
+                  mode="badge-only" 
+                  onClick={stats.available_skill_points > 0 ? () => setShowSkillAllocator(true) : undefined}
+                />
+              </div>
               <div className="flex items-center gap-4 text-lg text-gray-600 mb-4">
                 <span>Age {age}</span>
                 <span>•</span>
@@ -222,6 +254,61 @@ export const PlayerDetailPage: React.FC = () => {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Skill Point Allocator Modal/Section */}
+      {showSkillAllocator && stats.available_skill_points > 0 && (
+        <div className="mb-6">
+          <SkillPointAllocator
+            player={player}
+            availablePoints={stats.available_skill_points}
+            onAllocate={handleAllocateSkillPoints}
+            onCancel={() => setShowSkillAllocator(false)}
+          />
+        </div>
+      )}
+
+      {/* Progression Section */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold text-gray-900">Player Progression</h2>
+          {stats.available_skill_points > 0 && !showSkillAllocator && (
+            <button
+              onClick={() => setShowSkillAllocator(true)}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold flex items-center gap-2"
+            >
+              <span>✨</span>
+              Allocate {stats.available_skill_points} Skill Point{stats.available_skill_points > 1 ? 's' : ''}
+            </button>
+          )}
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Level Display */}
+          <div className="bg-gradient-to-br from-purple-50 to-indigo-100 rounded-lg p-4 border border-purple-200">
+            <div className="flex items-center gap-3">
+              <ProgressionBadge player={player} mode="full" />
+            </div>
+          </div>
+          
+          {/* Games Played for XP context */}
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+            <p className="text-sm text-blue-600 font-medium mb-1">Games Played</p>
+            <p className="text-3xl font-bold text-blue-900">{stats.games_played}</p>
+            <p className="text-xs text-blue-600 mt-1">
+              XP earned through gameplay
+            </p>
+          </div>
+          
+          {/* Skill Points Info */}
+          <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-4 border border-amber-200">
+            <p className="text-sm text-amber-600 font-medium mb-1">Available Skill Points</p>
+            <p className="text-3xl font-bold text-amber-900">{stats.available_skill_points}</p>
+            <p className="text-xs text-amber-600 mt-1">
+              {stats.available_skill_points > 0 ? 'Ready to allocate!' : 'Level up to earn more'}
+            </p>
           </div>
         </div>
       </div>

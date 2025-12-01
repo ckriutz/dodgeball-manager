@@ -19,6 +19,15 @@ References:
 import pytest
 from typing import List, Dict, Optional
 
+from src.services.awards_service import (
+    calculate_mvp,
+    calculate_mvp_per_game,
+    get_stat_leader,
+    get_accuracy_leader,
+    get_all_stat_leaders,
+    calculate_season_awards
+)
+
 
 class TestMVPCalculation:
     """Test suite for MVP (Most Valuable Player) calculation."""
@@ -124,7 +133,7 @@ class TestMVPCalculation:
         
         # Assert: Alice has better per-game stats (4.0 hits/game vs 2.5)
         assert mvp["player_id"] == "p1"
-        assert mvp["hits_per_game"] > mvp["hits_per_game"]
+        assert mvp["hits_per_game"] == 4.0  # 20 hits / 5 games
 
 
 class TestStatisticalLeaders:
@@ -336,96 +345,3 @@ class TestAwardsEdgeCases:
         # Assert: Should handle gracefully
         assert awards is not None
 
-
-# Helper functions that would be implemented in awards_service.py
-
-def calculate_mvp(players: List[Dict], min_games: int = 0) -> Optional[Dict]:
-    """
-    Calculate MVP based on combined performance score.
-    
-    Formula: (successful_hits * 2) + (catches_made * 1.5)
-    
-    Args:
-        players: List of player stats
-        min_games: Minimum games required for eligibility
-        
-    Returns:
-        MVP player dict with score and reason, or None if no eligible players
-    """
-    # This will be implemented in backend/src/services/awards_service.py
-    raise NotImplementedError("To be implemented in T099")
-
-
-def calculate_mvp_per_game(players: List[Dict], min_games: int = 0) -> Optional[Dict]:
-    """
-    Calculate MVP using per-game averages for fairness.
-    
-    Args:
-        players: List of player stats
-        min_games: Minimum games required for eligibility
-        
-    Returns:
-        MVP player dict with per-game stats
-    """
-    # This will be implemented in backend/src/services/awards_service.py
-    raise NotImplementedError("To be implemented in T099")
-
-
-def get_stat_leader(
-    players: List[Dict],
-    stat_name: str,
-    lowest: bool = False
-) -> Optional[Dict]:
-    """
-    Get leader for a specific stat.
-    
-    Args:
-        players: List of player stats
-        stat_name: Name of stat to compare
-        lowest: If True, lowest value wins (for defense stats)
-        
-    Returns:
-        Player with best stat value
-    """
-    # This will be implemented in backend/src/services/awards_service.py
-    raise NotImplementedError("To be implemented in T099")
-
-
-def get_accuracy_leader(
-    players: List[Dict],
-    min_throws: int = 0
-) -> Optional[Dict]:
-    """
-    Get player with best throw accuracy.
-    
-    Args:
-        players: List of player stats
-        min_throws: Minimum throws required for eligibility
-        
-    Returns:
-        Player with best accuracy (hits / attempts)
-    """
-    # This will be implemented in backend/src/services/awards_service.py
-    raise NotImplementedError("To be implemented in T099")
-
-
-def get_all_stat_leaders(players: List[Dict]) -> Dict[str, Optional[Dict]]:
-    """
-    Get leaders for all statistical categories.
-    
-    Returns:
-        Dict mapping category names to leader player dicts
-    """
-    # This will be implemented in backend/src/services/awards_service.py
-    raise NotImplementedError("To be implemented in T099")
-
-
-def calculate_season_awards(players: List[Dict]) -> Dict[str, Optional[Dict]]:
-    """
-    Calculate all season awards.
-    
-    Returns:
-        Dict with mvp, most_hits, most_catches, accuracy_leader, best_defense
-    """
-    # This will be implemented in backend/src/services/awards_service.py
-    raise NotImplementedError("To be implemented in T099")

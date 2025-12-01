@@ -13,7 +13,7 @@ References:
 """
 
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from uuid import uuid4
 from pydantic import BaseModel, Field, field_validator
 from enum import Enum
@@ -109,6 +109,14 @@ class Game(BaseModel):
     seed: Optional[int] = Field(
         default=None,
         description="Random seed for deterministic replay (NFR-003)"
+    )
+    player_xp_awards: Dict[str, int] = Field(
+        default_factory=dict,
+        description="Map of player_id to XP earned in this game (US4)"
+    )
+    player_level_ups: Dict[str, int] = Field(
+        default_factory=dict,
+        description="Map of player_id to new level after game (US4, only for players who leveled up)"
     )
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)
@@ -299,6 +307,50 @@ class Game(BaseModel):
             return 0
         return max(event.turn for event in self.events)
 
+    def award_player_xp(self, player_id: str, xp_amount: int) -> None:
+        """
+        Record XP awarded to a player for this game.
+        
+        Args:
+            player_id: Player ID
+            xp_amount: XP earned
+        """
+        self.player_xp_awards[player_id] = xp_amount
+
+    def record_player_level_up(self, player_id: str, new_level: int) -> None:
+        """
+        Record that a player leveled up during this game.
+        
+        Args:
+            player_id: Player ID
+            new_level: New level reached
+        """
+        self.player_level_ups[player_id] = new_level
+
+    def get_player_xp(self, player_id: str) -> Optional[int]:
+        """
+        Get XP awarded to a specific player.
+        
+        Args:
+            player_id: Player ID
+            
+        Returns:
+            XP amount or None if player didn't participate
+        """
+        return self.player_xp_awards.get(player_id)
+
+    def get_level_ups(self) -> List[Dict[str, Any]]:
+        """
+        Get list of all level-ups that occurred in this game.
+        
+        Returns:
+            List of dicts with player_id and new_level
+        """
+        return [
+            {"player_id": player_id, "new_level": level}
+            for player_id, level in self.player_level_ups.items()
+        ]
+
     class Config:
         """Pydantic model configuration."""
         json_schema_extra = {
@@ -333,6 +385,14 @@ class Game(BaseModel):
                 "winner_id": "team-789",
                 "completed_at": "2025-10-25T14:30:00Z",
                 "seed": 42,
+                "player_xp_awards": {
+                    "player-1": 85,
+                    "player-2": 60,
+                    "player-3": 75
+                },
+                "player_level_ups": {
+                    "player-1": 3
+                },
                 "created_at": "2025-10-25T14:00:00Z"
             }
         }
@@ -399,6 +459,8 @@ class GameResponse(BaseModel):
     winner_id: Optional[str]
     completed_at: Optional[datetime]
     seed: Optional[int]
+    player_xp_awards: Dict[str, int]
+    player_level_ups: Dict[str, int]
     created_at: datetime
 
     @classmethod
@@ -424,6 +486,8 @@ class GameResponse(BaseModel):
             winner_id=game.winner_id,
             completed_at=game.completed_at,
             seed=game.seed,
+            player_xp_awards=game.player_xp_awards,
+            player_level_ups=game.player_level_ups,
             created_at=game.created_at
         )
 
@@ -431,6 +495,7 @@ class GameResponse(BaseModel):
 class GameSummary(BaseModel):
     """Condensed game information for lists/history."""
     id: str
+    league_id: str
     team1_id: str
     team2_id: str
     winner_id: Optional[str]
@@ -450,9 +515,268 @@ class GameSummary(BaseModel):
         """
         return cls(
             id=game.id,
+            league_id=game.league_id,
             team1_id=game.team1_id,
             team2_id=game.team2_id,
             winner_id=game.winner_id,
             completed_at=game.completed_at,
             event_count=len(game.events)
+        )
+
+
+class ScheduledGameStatus(str, Enum):
+    """Status of a scheduled game."""
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+
+
+class ScheduledGame(BaseModel):
+    """
+    A game within a season schedule with status tracking.
+    
+    Tracks the matchup, sequence, and completion status for scheduled games.
+    Used for season schedule management and "Play Next Game" functionality.
+    
+    References:
+    - spec.md US4: Schedule with game status tracking
+    - spec.md: Play Next Game button functionality
+    """
+    game_number: int = Field(ge=1, description="Sequential game number in schedule")
+    team1_id: str = Field(description="Home team ID")
+    team2_id: str = Field(description="Away team ID")
+    status: ScheduledGameStatus = Field(
+        default=ScheduledGameStatus.PENDING,
+        description="Current status of this scheduled game"
+    )
+    game_id: Optional[str] = Field(
+        default=None,
+        description="ID of the actual Game entity (set when game is played)"
+    )
+    completed_at: Optional[datetime] = Field(
+        default=None,
+        description="Timestamp when game was completed"
+    )
+
+    def mark_in_progress(self, game_id: str) -> None:
+        """
+        Mark game as in progress.
+        
+        Args:
+            game_id: ID of the Game entity being played
+            
+        Raises:
+            ValueError: If game is not in PENDING status
+        """
+        if self.status != ScheduledGameStatus.PENDING:
+            raise ValueError(
+                f"Cannot start game: Game must be in PENDING status, "
+                f"currently {self.status}"
+            )
+        
+        self.status = ScheduledGameStatus.IN_PROGRESS
+        self.game_id = game_id
+
+    def mark_completed(self) -> None:
+        """
+        Mark game as completed.
+        
+        Raises:
+            ValueError: If game is not in IN_PROGRESS status or has no game_id
+        """
+        if self.status != ScheduledGameStatus.IN_PROGRESS:
+            raise ValueError(
+                f"Cannot complete game: Game must be in IN_PROGRESS status, "
+                f"currently {self.status}"
+            )
+        
+        if not self.game_id:
+            raise ValueError("Cannot complete game: No game_id set")
+        
+        self.status = ScheduledGameStatus.COMPLETED
+        self.completed_at = datetime.now(timezone.utc)
+
+    def is_pending(self) -> bool:
+        """Check if game is pending (not yet played)."""
+        return self.status == ScheduledGameStatus.PENDING
+
+    def is_completed(self) -> bool:
+        """Check if game has been completed."""
+        return self.status == ScheduledGameStatus.COMPLETED
+
+    class Config:
+        """Pydantic model configuration."""
+        json_schema_extra = {
+            "example": {
+                "game_number": 1,
+                "team1_id": "team-123",
+                "team2_id": "team-456",
+                "status": "completed",
+                "game_id": "game-789",
+                "completed_at": "2025-11-01T15:30:00Z"
+            }
+        }
+
+
+class Schedule(BaseModel):
+    """
+    Complete season schedule with game status tracking.
+    
+    Manages the list of scheduled games for a season with utilities
+    for finding the next game, tracking progress, and completion status.
+    
+    References:
+    - spec.md US4: Round-robin schedule generation with status tracking
+    - spec.md: Play Next Game functionality
+    """
+    games: List[ScheduledGame] = Field(
+        default_factory=list,
+        description="Ordered list of scheduled games"
+    )
+    rounds: int = Field(
+        ge=1,
+        description="Number of rounds (times each team pairing plays)"
+    )
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="When schedule was created"
+    )
+
+    def get_next_game(self) -> Optional[ScheduledGame]:
+        """
+        Get the next pending game in the schedule.
+        
+        Returns:
+            Next ScheduledGame with PENDING status, or None if all completed
+        """
+        for game in self.games:
+            if game.is_pending():
+                return game
+        return None
+
+    def get_game_by_number(self, game_number: int) -> Optional[ScheduledGame]:
+        """
+        Get a specific game by its sequence number.
+        
+        Args:
+            game_number: Sequential game number
+            
+        Returns:
+            ScheduledGame if found, None otherwise
+        """
+        for game in self.games:
+            if game.game_number == game_number:
+                return game
+        return None
+
+    def get_completed_count(self) -> int:
+        """Get the number of completed games."""
+        return sum(1 for game in self.games if game.is_completed())
+
+    def get_pending_count(self) -> int:
+        """Get the number of pending games."""
+        return sum(1 for game in self.games if game.is_pending())
+
+    def get_total_count(self) -> int:
+        """Get the total number of games in schedule."""
+        return len(self.games)
+
+    def is_complete(self) -> bool:
+        """
+        Check if all games in schedule have been completed.
+        
+        Returns:
+            True if all games are completed, False otherwise
+        """
+        if not self.games:
+            return False
+        return all(game.is_completed() for game in self.games)
+
+    def get_progress_percentage(self) -> float:
+        """
+        Calculate schedule completion percentage.
+        
+        Returns:
+            Percentage of games completed (0.0 to 100.0)
+        """
+        if not self.games:
+            return 0.0
+        return (self.get_completed_count() / self.get_total_count()) * 100.0
+
+    def get_team_games(self, team_id: str) -> List[ScheduledGame]:
+        """
+        Get all games involving a specific team.
+        
+        Args:
+            team_id: Team ID to search for
+            
+        Returns:
+            List of ScheduledGames where team is team1 or team2
+        """
+        return [
+            game for game in self.games
+            if game.team1_id == team_id or game.team2_id == team_id
+        ]
+
+    class Config:
+        """Pydantic model configuration."""
+        json_schema_extra = {
+            "example": {
+                "games": [
+                    {
+                        "game_number": 1,
+                        "team1_id": "team-123",
+                        "team2_id": "team-456",
+                        "status": "completed",
+                        "game_id": "game-789",
+                        "completed_at": "2025-11-01T15:30:00Z"
+                    },
+                    {
+                        "game_number": 2,
+                        "team1_id": "team-456",
+                        "team2_id": "team-789",
+                        "status": "pending",
+                        "game_id": None,
+                        "completed_at": None
+                    }
+                ],
+                "rounds": 1,
+                "created_at": "2025-11-01T12:00:00Z"
+            }
+        }
+
+
+class ScheduleResponse(BaseModel):
+    """Response schema for schedule API endpoints."""
+    games: List[ScheduledGame]
+    rounds: int
+    total_games: int
+    completed_games: int
+    pending_games: int
+    progress_percentage: float
+    is_complete: bool
+    next_game: Optional[ScheduledGame]
+    created_at: datetime
+
+    @classmethod
+    def from_schedule(cls, schedule: Schedule) -> 'ScheduleResponse':
+        """
+        Create response from Schedule entity.
+        
+        Args:
+            schedule: Schedule entity
+            
+        Returns:
+            ScheduleResponse instance
+        """
+        return cls(
+            games=schedule.games,
+            rounds=schedule.rounds,
+            total_games=schedule.get_total_count(),
+            completed_games=schedule.get_completed_count(),
+            pending_games=schedule.get_pending_count(),
+            progress_percentage=schedule.get_progress_percentage(),
+            is_complete=schedule.is_complete(),
+            next_game=schedule.get_next_game(),
+            created_at=schedule.created_at
         )

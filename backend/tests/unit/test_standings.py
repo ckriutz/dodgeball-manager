@@ -19,6 +19,8 @@ References:
 import pytest
 from typing import List, Dict
 
+from src.services.standings_service import calculate_standings
+
 
 class TestStandingsCalculation:
     """Test suite for standings calculation and ranking."""
@@ -78,10 +80,10 @@ class TestStandingsCalculation:
         # Act
         standings = calculate_standings(teams)
         
-        # Assert
-        assert standings[0]["win_percentage"] == 0.75   # 3/4
-        assert standings[1]["win_percentage"] == 1.0    # 1/1
-        assert standings[2]["win_percentage"] == 0.5    # 2/4
+        # Assert: Ranked by wins (desc), so team-1 (3 wins), team-2 (2 wins), team-3 (1 win)
+        assert standings[0]["win_percentage"] == 0.75   # 3/4 (team-1)
+        assert standings[1]["win_percentage"] == 0.5    # 2/4 (team-2)
+        assert standings[2]["win_percentage"] == 1.0    # 1/1 (team-3)
     
     def test_standings_games_played(self):
         """Test games played count is correct."""
@@ -327,32 +329,3 @@ class TestStandingsEdgeCases:
         
         # Assert: Original data unchanged
         assert teams == original_teams
-
-
-# Helper function that would be implemented in standings_service.py
-
-def calculate_standings(teams: List[Dict]) -> List[Dict]:
-    """
-    Calculate standings from team records.
-    
-    Ranks teams by:
-    1. Wins (descending)
-    2. Losses (ascending) - for tiebreaker
-    
-    Adds computed fields:
-    - rank: Position in standings (1-based)
-    - games_played: wins + losses
-    - win_percentage: wins / games_played (0.0 if no games)
-    
-    Args:
-        teams: List of dicts with team_id, team_name, wins, losses
-        
-    Returns:
-        List of standings entries with rank and computed fields
-        
-    Raises:
-        ValueError: If wins/losses are negative or non-integer
-        ValueError: If required fields are missing
-    """
-    # This will be implemented in backend/src/services/standings_service.py
-    raise NotImplementedError("To be implemented in T098")

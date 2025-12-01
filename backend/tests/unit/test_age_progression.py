@@ -20,6 +20,15 @@ References:
 import pytest
 from typing import Dict
 
+from src.services.age_service import (
+    apply_age_progression,
+    apply_bulk_age_progression,
+    calculate_age_penalty,
+    calculate_stat_penalties,
+    get_max_skill_levels,
+    preview_age_progression,
+)
+
 
 class TestAgeProgression:
     """Test suite for player age progression."""
@@ -393,82 +402,3 @@ class TestAgePenaltyFormula:
         # IQ maximum stays the same or increases
         assert max_35["iq"] >= max_20["iq"]
 
-
-# Helper functions that would be implemented in age_service.py
-
-def apply_age_progression(player: Dict) -> Dict:
-    """
-    Age a player by 1 year and apply stat penalties if over 30.
-    
-    Args:
-        player: Player dict with age and skills
-        
-    Returns:
-        Updated player with new age and adjusted skills
-    """
-    # This will be implemented in backend/src/services/age_service.py
-    raise NotImplementedError("To be implemented in T101")
-
-
-def apply_bulk_age_progression(players: list) -> list:
-    """
-    Age multiple players at once (season end).
-    
-    Args:
-        players: List of player dicts
-        
-    Returns:
-        List of updated players
-    """
-    # This will be implemented in backend/src/services/age_service.py
-    raise NotImplementedError("To be implemented in T101")
-
-
-def calculate_age_penalty(age: int) -> float:
-    """
-    Calculate overall age penalty multiplier.
-    
-    Args:
-        age: Player age
-        
-    Returns:
-        Penalty multiplier (0.0 = no penalty, 1.0 = full penalty)
-    """
-    # This will be implemented in backend/src/services/age_service.py
-    raise NotImplementedError("To be implemented in T101")
-
-
-def calculate_stat_penalties(age: int) -> Dict[str, float]:
-    """
-    Calculate stat-specific penalties for an age.
-    
-    Returns:
-        Dict mapping skill names to penalty amounts
-    """
-    # This will be implemented in backend/src/services/age_service.py
-    raise NotImplementedError("To be implemented in T101")
-
-
-def get_max_skill_levels(age: int) -> Dict[str, int]:
-    """
-    Get maximum skill levels for a given age.
-    
-    Args:
-        age: Player age
-        
-    Returns:
-        Dict mapping skill names to maximum values (0-100)
-    """
-    # This will be implemented in backend/src/services/age_service.py
-    raise NotImplementedError("To be implemented in T101")
-
-
-def preview_age_progression(players: list) -> list:
-    """
-    Preview age progression changes without applying them.
-    
-    Returns:
-        List of dicts with old_age, new_age, skill_changes for each player
-    """
-    # This will be implemented in backend/src/services/age_service.py
-    raise NotImplementedError("To be implemented in T101")

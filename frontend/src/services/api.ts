@@ -216,10 +216,40 @@ export const leagueApi = {
   },
 
   /**
+   * Get league schedule
+   */
+  getSchedule: async (leagueId: string) => {
+    return apiClient.get(`/leagues/${leagueId}/schedule`);
+  },
+
+  /**
    * Get league awards
    */
   getAwards: async (leagueId: string) => {
     return apiClient.get(`/leagues/${leagueId}/awards`);
+  },
+
+  /**
+   * Get season history
+   */
+  getSeasonHistory: async (leagueId: string) => {
+    return apiClient.get(`/leagues/${leagueId}/seasons/history`);
+  },
+
+  /**
+   * Finish the current season
+   * Archives current season data, increments player ages, and prepares for new season
+   */
+  finishSeason: async (leagueId: string) => {
+    return apiClient.post(`/leagues/${leagueId}/seasons/finish`);
+  },
+
+  /**
+   * Start a new season
+   * Resets team records and creates a fresh schedule
+   */
+  startSeason: async (leagueId: string) => {
+    return apiClient.post(`/leagues/${leagueId}/seasons/start`);
   },
 
   /**
@@ -237,6 +267,27 @@ export const playerApi = {
    */
   getPlayer: async (playerId: string) => {
     return apiClient.get(`/players/${playerId}`);
+  },
+
+  /**
+   * Get player progression information
+   */
+  getProgression: async (playerId: string) => {
+    return apiClient.get(`/players/${playerId}/progression`);
+  },
+
+  /**
+   * Spend a single skill point
+   */
+  spendSkillPoint: async (playerId: string, skillName: string) => {
+    return apiClient.post(`/players/${playerId}/spend-skill-point`, { skill_name: skillName });
+  },
+
+  /**
+   * Spend multiple skill points at once
+   */
+  spendSkillPoints: async (playerId: string, allocations: Record<string, number>) => {
+    return apiClient.post(`/players/${playerId}/spend-skill-points`, { allocations });
   },
 };
 

@@ -1,44 +1,50 @@
-<!--
-Sync Impact Report:
-- Version change: 0.0.0 → 1.0.0 (initial definition with core principles)
-- Added sections: Frontend Framework, Backend Framework, Simplicity and Maintainability, Database, Deployment, Additional Constraints, Development Workflow
-- Templates requiring updates: None (templates are general and align with principles)
-- Follow-up TODOs: None
--->
-# Dodgeball Manager Constitution
+# [PROJECT_NAME] Constitution
+<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
 
 ## Core Principles
 
-### Frontend Framework
-The frontend MUST use React with Tailwind CSS. Components should be simple, reusable, and follow React best practices. Tailwind CSS for styling to ensure responsive and maintainable UI without complex CSS frameworks.
+### [PRINCIPLE_1_NAME]
+<!-- Example: I. Library-First -->
+[PRINCIPLE_1_DESCRIPTION]
+<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
 
-### Backend Framework
-The backend MUST use Python FastAPI. APIs MUST be RESTful, leverage async capabilities where appropriate, and use Pydantic for data validation and serialization.
+### [PRINCIPLE_2_NAME]
+<!-- Example: II. CLI Interface -->
+[PRINCIPLE_2_DESCRIPTION]
+<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
 
-### Simplicity and Maintainability
-Code MUST be kept simple and avoid over-engineering. Follow YAGNI (You Aren't Gonna Need It) principles. Complexity MUST be justified and added only when necessary through refactoring.
+### [PRINCIPLE_3_NAME]
+<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
+[PRINCIPLE_3_DESCRIPTION]
+<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
 
-### Database
-When databases are needed, PostgreSQL MUST be used. Use appropriate ORMs like SQLAlchemy for database interactions to ensure portability and maintainability.
+### [PRINCIPLE_4_NAME]
+<!-- Example: IV. Integration Testing -->
+[PRINCIPLE_4_DESCRIPTION]
+<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
 
-### Deployment
-All services MUST be deployed using Docker containers. Each service MUST have a Dockerfile and .dockerignore for efficient and consistent builds.
+### [PRINCIPLE_5_NAME]
+<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
+[PRINCIPLE_5_DESCRIPTION]
+<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
 
-## Additional Constraints
-Technology Stack: Node.js for React development, Python 3.8+ for FastAPI. Use TypeScript for React components if complexity warrants it.
+## [SECTION_2_NAME]
+<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
 
-Security: Implement basic authentication and authorization. Use HTTPS in production. Validate inputs and handle errors gracefully.
+[SECTION_2_CONTENT]
+<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
 
-Performance: Keep initial load times reasonable. Optimize images and bundles.
+## [SECTION_3_NAME]
+<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
 
-## Development Workflow
-Code Review: All changes require pull request review.
-
-Testing: Write unit tests for critical logic. Integration tests for API endpoints.
-
-Version Control: Use Git with feature branches.
+[SECTION_3_CONTENT]
+<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
 
 ## Governance
-Constitution supersedes all other practices. Amendments require consensus and documentation. All PRs must verify compliance with principles. Use this constitution for guidance on technology choices.
+<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-**Version**: 1.0.0 | **Ratified**: 2025-10-24 | **Last Amended**: 2025-10-24
+[GOVERNANCE_RULES]
+<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+
+**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
+<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->

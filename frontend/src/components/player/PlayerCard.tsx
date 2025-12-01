@@ -3,10 +3,12 @@
  * 
  * Clean, simplified player card design inspired by modern profile layouts.
  * Displays essential player information with a focus on readability and visual hierarchy.
+ * Shows progression badge when player has available skill points.
  */
 
 import React from 'react';
 import type { Player } from '../../types';
+import { ProgressionBadge } from './ProgressionBadge';
 
 interface PlayerCardProps {
   player: Player;
@@ -96,19 +98,28 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
     ${className}
   `;
 
+  // Check if player has available skill points
+  const hasSkillPoints = stats.available_skill_points > 0;
+
   // Compact mode - minimal display for team rosters
   if (compact) {
     return (
       <div className={cardClasses} onClick={handleClick}>
         {/* Compact Header */}
         <div className="relative bg-gradient-to-br from-slate-50 to-slate-100 p-4">
-          {injury && (
-            <div className="absolute top-2 right-2">
+          {/* Status badges - top right */}
+          <div className="absolute top-2 right-2 flex items-center gap-1">
+            {hasSkillPoints && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200 animate-pulse">
+                +{stats.available_skill_points} SP
+              </span>
+            )}
+            {injury && (
               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700 border border-red-200">
                 Injured
               </span>
-            </div>
-          )}
+            )}
+          </div>
           
           <div className="flex items-center gap-3">
             {/* Avatar */}
@@ -156,13 +167,19 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
     <div className={cardClasses} onClick={handleClick}>
       {/* Header Section with Avatar and Name */}
       <div className="relative bg-gradient-to-br from-slate-50 to-slate-100 p-6 pb-4">
-        {injury && (
-          <div className="absolute top-3 right-3">
+        {/* Status badges - top right */}
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          {hasSkillPoints && (
+            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200 animate-pulse">
+              ✨ {stats.available_skill_points} Skill Point{stats.available_skill_points > 1 ? 's' : ''}
+            </span>
+          )}
+          {injury && (
             <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-red-100 text-red-700 border border-red-200">
               Injured
             </span>
-          </div>
-        )}
+          )}
+        </div>
         
         <div className="flex items-start gap-4">
           {/* Avatar */}
@@ -180,9 +197,14 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           {/* Name and Team */}
           <div className="flex-1 pt-1">
             <h3 className="text-xl font-bold text-gray-900 mb-1">{name}</h3>
-            <p className="text-sm text-gray-500">
-              {teamName || (team_id ? 'Team Player' : 'Free Agent')}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-gray-500">
+                {teamName || (team_id ? 'Team Player' : 'Free Agent')}
+              </p>
+              {stats.level > 1 && (
+                <ProgressionBadge player={player} mode="minimal" />
+              )}
+            </div>
           </div>
         </div>
       </div>

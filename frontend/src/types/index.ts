@@ -31,6 +31,10 @@ export interface PlayerStats {
   missed_throws: number;
   successful_hits: number;
   games_played: number;
+  // Progression system fields (US4)
+  experience_points: number;
+  level: number;
+  available_skill_points: number;
 }
 
 export interface Player {
@@ -108,6 +112,116 @@ export interface Game {
   winner_id: UUID | null;
   completed_at: string | null;
   seed: number;
+}
+
+// Season types (US4)
+export type SeasonState = 'pre_season' | 'in_progress' | 'completed';
+
+export interface Season {
+  season_number: number;
+  state: SeasonState;
+  games_played: number;
+  games_total: number;
+}
+
+export interface SeasonArchive {
+  season_number: number;
+  final_standings: StandingsEntry[];
+  awards: SeasonAwards;
+  completed_at: string;
+}
+
+export interface SeasonAwards {
+  mvp?: {
+    player_id: UUID;
+    player_name: string;
+    team_name: string;
+    stats: Record<string, number>;
+  };
+  champion?: {
+    team_id: UUID;
+    team_name: string;
+    wins: number;
+    losses: number;
+  };
+}
+
+// Standings types (US4)
+export interface StandingsEntry {
+  team_id: UUID;
+  team_name: string;
+  wins: number;
+  losses: number;
+  win_percentage: number;
+  points_for?: number;
+  points_against?: number;
+}
+
+// Player Progression types (US4)
+export interface PlayerProgression {
+  player_id: UUID;
+  player_name: string;
+  level: number;
+  experience_points: number;
+  xp_for_next_level: number;
+  xp_progress_percent: number;
+  available_skill_points: number;
+  total_skill_points_earned: number;
+  skills: PlayerSkills;
+}
+
+export interface SkillAllocation {
+  [skillName: string]: number;
+}
+
+// Awards types (US4)
+export interface AwardsData {
+  mvp?: {
+    player_id: UUID;
+    player_name: string;
+    team_name: string;
+    total_score: number;
+    stats: {
+      eliminations: number;
+      catches: number;
+      games_played: number;
+      accuracy: number;
+    };
+  };
+  top_scorer?: {
+    player_id: UUID;
+    player_name: string;
+    team_name: string;
+    eliminations: number;
+  };
+  best_catcher?: {
+    player_id: UUID;
+    player_name: string;
+    team_name: string;
+    catches: number;
+  };
+  most_accurate?: {
+    player_id: UUID;
+    player_name: string;
+    team_name: string;
+    accuracy: number;
+    throws: number;
+  };
+  season_champion?: {
+    team_id: UUID;
+    team_name: string;
+    wins: number;
+    losses: number;
+  };
+}
+
+// Season History types (US4)
+export interface SeasonArchiveData {
+  season_number: number;
+  completed_at: string;
+  final_standings: StandingsEntry[];
+  awards: AwardsData;
+  games_played: number;
 }
 
 // Request types

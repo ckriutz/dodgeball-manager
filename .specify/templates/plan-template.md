@@ -31,11 +31,7 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- Frontend MUST use React with Tailwind CSS
-- Backend MUST use Python FastAPI
-- Code MUST remain simple; complexity must be justified
-- Databases MUST use PostgreSQL if needed
-- Deployment MUST use Docker containers
+[Gates determined based on constitution file]
 
 ## Project Structure
 

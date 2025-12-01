@@ -101,14 +101,12 @@ app.add_exception_handler(Exception, unhandled_exception_handler)
 
 
 # Import and include routers
-from .api import leagues, teams, games
+from .api import leagues, teams, games, players
 
 app.include_router(leagues.router)
 app.include_router(teams.router)
 app.include_router(games.router)
-# Additional routers will be added as we implement them:
-# from .api import players
-# app.include_router(players.router, prefix="/api", tags=["players"])
+app.include_router(players.router)
 
 
 if __name__ == "__main__":

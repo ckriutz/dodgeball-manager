@@ -323,3 +323,134 @@ class PlayerService:
             True if deleted, False if not found
         """
         return self.storage.delete_player(player_id)
+
+    def spend_skill_point(self, player_id: str, skill_name: str) -> Player:
+        """
+        Spend a single skill point to increase a player's skill by 1.
+        
+        Args:
+            player_id: Player UUID
+            skill_name: Name of skill to increase (catching, throwing, dodging, speed, iq, luck)
+            
+        Returns:
+            Updated Player instance
+            
+        Raises:
+            ValueError: If player not found, skill name invalid, no points available, or skill at max
+        """
+        player = self.get_player(player_id)
+        if player is None:
+            raise ValueError(f"Player {player_id} not found")
+        
+        # Use Player model's spend_skill_point method
+        success = player.spend_skill_point(skill_name)
+        
+        if not success:
+            # Determine the reason for failure
+            if player.stats.available_skill_points <= 0:
+                raise ValueError("No skill points available")
+            
+            current_value = getattr(player.skills, skill_name)
+            if current_value >= 100:
+                raise ValueError(f"Skill '{skill_name}' is already at maximum (100)")
+            
+            raise ValueError(f"Failed to spend skill point on '{skill_name}'")
+        
+        # Update storage
+        self.storage.update_player(player_id, player.model_dump())
+        
+        return player
+
+    def spend_skill_points(
+        self,
+        player_id: str,
+        allocations: dict[str, int]
+    ) -> Player:
+        """
+        Spend multiple skill points at once across different skills.
+        
+        This method validates all allocations before spending any points,
+        ensuring atomic behavior (all or nothing).
+        
+        Args:
+            player_id: Player UUID
+            allocations: Dictionary mapping skill_name -> points_to_spend
+                         e.g., {"throwing": 2, "catching": 1}
+            
+        Returns:
+            Updated Player instance
+            
+        Raises:
+            ValueError: If player not found, invalid skill names, not enough points,
+                       or would exceed skill max
+        """
+        player = self.get_player(player_id)
+        if player is None:
+            raise ValueError(f"Player {player_id} not found")
+        
+        # Validate skill names
+        valid_skills = {'catching', 'throwing', 'dodging', 'speed', 'iq', 'luck'}
+        for skill_name in allocations:
+            if skill_name not in valid_skills:
+                raise ValueError(f"Invalid skill name: {skill_name}. Valid skills: {', '.join(sorted(valid_skills))}")
+        
+        # Calculate total points needed
+        total_points_needed = sum(allocations.values())
+        
+        # Check if enough points available
+        if total_points_needed > player.stats.available_skill_points:
+            raise ValueError(
+                f"Not enough skill points. Have {player.stats.available_skill_points}, need {total_points_needed}"
+            )
+        
+        # Validate all skills can be increased before spending any
+        for skill_name, points in allocations.items():
+            if points < 0:
+                raise ValueError(f"Cannot allocate negative points to {skill_name}")
+            
+            current_value = getattr(player.skills, skill_name)
+            if current_value + points > 100:
+                raise ValueError(
+                    f"Cannot increase {skill_name} by {points}. "
+                    f"Current: {current_value}, would exceed max of 100"
+                )
+        
+        # Spend all points
+        for skill_name, points in allocations.items():
+            for _ in range(points):
+                success = player.spend_skill_point(skill_name)
+                if not success:
+                    # This shouldn't happen since we validated above
+                    raise ValueError(f"Unexpected error spending point on {skill_name}")
+        
+        # Update storage
+        self.storage.update_player(player_id, player.model_dump())
+        
+        return player
+
+    def get_player_progression(self, player_id: str) -> dict:
+        """
+        Get a player's progression information.
+        
+        Args:
+            player_id: Player UUID
+            
+        Returns:
+            Dictionary with progression info:
+            {
+                'level': int,
+                'experience_points': int,
+                'available_skill_points': int,
+                'xp_for_next_level': int,
+                'xp_progress': int,
+                'progress_percentage': float
+            }
+            
+        Raises:
+            ValueError: If player not found
+        """
+        player = self.get_player(player_id)
+        if player is None:
+            raise ValueError(f"Player {player_id} not found")
+        
+        return player.get_progression_info()

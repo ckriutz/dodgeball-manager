@@ -189,53 +189,53 @@
 ### Implementation for User Story 4
 
 #### Backend - Data Models
-- [ ] T092 [P] [US4] Add Season model with lifecycle states in backend/src/models/league.py
-- [ ] T093 [P] [US4] Add Schedule model with game status tracking in backend/src/models/game.py
-- [ ] T094 [P] [US4] Add SeasonArchive model for historical records in backend/src/models/league.py
-- [ ] T095 [US4] Update Player model with progression fields (experience_points, level, available_skill_points) in backend/src/models/player.py
-- [ ] T096 [US4] Update Game model to track per-player XP awards in backend/src/models/game.py
+- [X] T092 [P] [US4] Add Season model with lifecycle states in backend/src/models/league.py
+- [X] T093 [P] [US4] Add Schedule model with game status tracking in backend/src/models/game.py
+- [X] T094 [P] [US4] Add SeasonArchive model for historical records in backend/src/models/league.py
+- [X] T095 [US4] Update Player model with progression fields (experience_points, level, available_skill_points) in backend/src/models/player.py
+- [X] T096 [US4] Update Game model to track per-player XP awards in backend/src/models/game.py
 
 #### Backend - Services
-- [ ] T097 [US4] Implement ScheduleService with round-robin algorithm and status tracking in backend/src/services/schedule_service.py
-- [ ] T098 [US4] Implement StandingsService with ranking logic in backend/src/services/standings_service.py
-- [ ] T099 [US4] Implement AwardsService with MVP calculation in backend/src/services/awards_service.py
-- [ ] T100 [US4] Implement SkillProgressionService with XP calculation and leveling in backend/src/services/skill_progression.py
-- [ ] T101 [US4] Implement AgeProgressionService with stat penalties in backend/src/services/age_service.py
-- [ ] T102 [US4] Implement SeasonService with lifecycle management and archiving in backend/src/services/season_service.py
-- [ ] T103 [US4] Update GameService to award XP after simulation in backend/src/services/game_service.py
-- [ ] T104 [US4] Update PlayerService to handle skill point spending in backend/src/services/player_service.py
-- [ ] T105 [US4] Update player value calculation formula to include level and games_played in backend/src/services/utils.py
+- [X] T097 [US4] Implement ScheduleService with round-robin algorithm and status tracking in backend/src/services/schedule_service.py
+- [X] T098 [US4] Implement StandingsService with ranking logic in backend/src/services/standings_service.py
+- [X] T099 [US4] Implement AwardsService with MVP calculation in backend/src/services/awards_service.py
+- [X] T100 [US4] Implement SkillProgressionService with XP calculation and leveling in backend/src/services/skill_progression.py
+- [X] T101 [US4] Implement AgeProgressionService with stat penalties in backend/src/services/age_service.py
+- [X] T102 [US4] Implement SeasonService with lifecycle management and archiving in backend/src/services/season_service.py
+- [X] T103 [US4] Update GameService to award XP after simulation in backend/src/services/game_service.py
+- [X] T104 [US4] Update PlayerService to handle skill point spending in backend/src/services/player_service.py
+- [X] T105 [US4] Update player value calculation formula to include level and games_played in backend/src/services/utils.py
 
 #### Backend - API Endpoints
-- [ ] T106 [US4] Implement POST /api/leagues/{league_id}/schedule in backend/src/api/leagues.py
-- [ ] T107 [US4] Implement GET /api/leagues/{league_id}/schedule (with status indicators) in backend/src/api/leagues.py
-- [ ] T108 [US4] Implement GET /api/leagues/{league_id}/standings in backend/src/api/leagues.py
-- [ ] T109 [US4] Implement GET /api/leagues/{league_id}/awards in backend/src/api/leagues.py
-- [ ] T110 [US4] Implement POST /api/leagues/{league_id}/seasons/finish in backend/src/api/leagues.py
-- [ ] T111 [US4] Implement POST /api/leagues/{league_id}/seasons/start in backend/src/api/leagues.py
-- [ ] T112 [US4] Implement GET /api/leagues/{league_id}/seasons/history in backend/src/api/leagues.py
-- [ ] T113 [US4] Implement GET /api/players/{player_id}/progression in backend/src/api/players.py
-- [ ] T114 [US4] Implement POST /api/players/{player_id}/spend-skill-point in backend/src/api/players.py
-- [ ] T115 [US4] Implement POST /api/players/{player_id}/spend-skill-points in backend/src/api/players.py
-- [ ] T116 [US4] Update POST /api/games to return XP awards and level-ups in backend/src/api/games.py
+- [X] T106 [US4] Implement POST /api/leagues/{league_id}/schedule in backend/src/api/leagues.py
+- [X] T107 [US4] Implement GET /api/leagues/{league_id}/schedule (with status indicators) in backend/src/api/leagues.py
+- [X] T108 [US4] Implement GET /api/leagues/{league_id}/standings in backend/src/api/leagues.py
+- [X] T109 [US4] Implement GET /api/leagues/{league_id}/awards in backend/src/api/leagues.py
+- [X] T110 [US4] Implement POST /api/leagues/{league_id}/seasons/finish in backend/src/api/leagues.py
+- [X] T111 [US4] Implement POST /api/leagues/{league_id}/seasons/start in backend/src/api/leagues.py
+- [X] T112 [US4] Implement GET /api/leagues/{league_id}/seasons/history in backend/src/api/leagues.py
+- [X] T113 [US4] Implement GET /api/players/{player_id}/progression in backend/src/api/players.py
+- [X] T114 [US4] Implement POST /api/players/{player_id}/spend-skill-point in backend/src/api/players.py
+- [X] T115 [US4] Implement POST /api/players/{player_id}/spend-skill-points in backend/src/api/players.py
+- [X] T116 [US4] Update POST /api/games to return XP awards and level-ups in backend/src/api/games.py
 
 #### Frontend - Components
-- [ ] T117 [P] [US4] Create ProgressionBadge component in frontend/src/components/player/ProgressionBadge.tsx
-- [ ] T118 [P] [US4] Create SkillPointAllocator component in frontend/src/components/player/SkillPointAllocator.tsx
-- [ ] T119 [P] [US4] Create LeagueStandings component in frontend/src/components/league/LeagueStandings.tsx
-- [ ] T120 [P] [US4] Create LeagueSchedule component with status indicators in frontend/src/components/league/LeagueSchedule.tsx
-- [ ] T121 [P] [US4] Create LeagueAwards component in frontend/src/components/league/LeagueAwards.tsx
-- [ ] T122 [P] [US4] Create SeasonHistory component in frontend/src/components/league/SeasonHistory.tsx
-- [ ] T123 [P] [US4] Create SeasonCompletionModal component in frontend/src/components/league/SeasonCompletionModal.tsx
-- [ ] T124 [P] [US4] Update GameResultsModal to show level-up notifications in frontend/src/components/game/GameResultsModal.tsx
+- [X] T117 [P] [US4] Create ProgressionBadge component in frontend/src/components/player/ProgressionBadge.tsx
+- [X] T118 [P] [US4] Create SkillPointAllocator component in frontend/src/components/player/SkillPointAllocator.tsx
+- [X] T119 [P] [US4] Create LeagueStandings component in frontend/src/components/league/LeagueStandings.tsx
+- [X] T120 [P] [US4] Create LeagueSchedule component with status indicators in frontend/src/components/league/LeagueSchedule.tsx
+- [X] T121 [P] [US4] Create LeagueAwards component in frontend/src/components/league/LeagueAwards.tsx
+- [X] T122 [P] [US4] Create SeasonHistory component in frontend/src/components/league/SeasonHistory.tsx
+- [X] T123 [P] [US4] Create SeasonCompletionModal component in frontend/src/components/league/SeasonCompletionModal.tsx
+- [X] T124 [P] [US4] Update GameResultsModal to show level-up notifications in frontend/src/components/game/GameResultsModal.tsx
 
 #### Frontend - Pages & Integration
-- [ ] T125 [US4] Update PlayerDetailPage to show progression and skill allocation in frontend/src/pages/PlayerDetailPage.tsx
-- [ ] T126 [US4] Update LeaguePage to include standings, schedule, and season history tabs in frontend/src/pages/LeaguePage.tsx
-- [ ] T127 [US4] Update GamesPage with "Play Next Game" button and schedule status in frontend/src/pages/GamesPage.tsx
-- [ ] T128 [US4] Add season and progression API methods to frontend/src/services/api.ts
-- [ ] T129 [US4] Update PlayerCard to show progression badge when skill points available in frontend/src/components/player/PlayerCard.tsx
-- [ ] T130 [US4] Update TypeScript types for Season, Schedule, PlayerProgression in frontend/src/types/index.ts
+- [X] T125 [US4] Update PlayerDetailPage to show progression and skill allocation in frontend/src/pages/PlayerDetailPage.tsx
+- [X] T126 [US4] Update LeaguePage to include standings, schedule, and season history tabs in frontend/src/pages/LeaguePage.tsx
+- [X] T127 [US4] Update GamesPage with "Play Next Game" button and schedule status in frontend/src/pages/GamesPage.tsx
+- [X] T128 [US4] Add season and progression API methods to frontend/src/services/api.ts
+- [X] T129 [US4] Update PlayerCard to show progression badge when skill points available in frontend/src/components/player/PlayerCard.tsx
+- [X] T130 [US4] Update TypeScript types for Season, Schedule, PlayerProgression in frontend/src/types/index.ts
 
 #### Frontend - Tests
 - [ ] T131 [P] [US4] Component test for ProgressionBadge in frontend/tests/components/ProgressionBadge.test.tsx

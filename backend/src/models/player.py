@@ -70,13 +70,109 @@ class Injury(BaseModel):
 
 
 class PlayerStats(BaseModel):
-    """Player game statistics."""
+    """Player game statistics and progression."""
     throws_attempted: int = Field(default=0, ge=0)
     catches_made: int = Field(default=0, ge=0)
     times_hit: int = Field(default=0, ge=0)
     missed_throws: int = Field(default=0, ge=0)
     successful_hits: int = Field(default=0, ge=0)
     games_played: int = Field(default=0, ge=0, description="Number of games played as starter")
+    
+    # Progression system fields (US4)
+    experience_points: int = Field(
+        default=0,
+        ge=0,
+        description="Total XP earned from gameplay"
+    )
+    level: int = Field(
+        default=1,
+        ge=1,
+        le=100,
+        description="Player level (1-100)"
+    )
+    available_skill_points: int = Field(
+        default=0,
+        ge=0,
+        description="Unspent skill points from leveling"
+    )
+
+    def calculate_xp_for_next_level(self) -> int:
+        """
+        Calculate XP required for next level.
+        Uses exponential scaling: 100 * level^1.5
+        
+        Examples:
+            - Level 1->2: 100 XP
+            - Level 2->3: 283 XP  
+            - Level 5->6: 1118 XP
+            - Level 10->11: 3162 XP
+        
+        Returns:
+            XP needed to reach next level
+        """
+        return int(100 * (self.level ** 1.5))
+
+    def calculate_total_xp_for_level(self, target_level: int) -> int:
+        """
+        Calculate cumulative XP needed to reach a target level.
+        
+        Args:
+            target_level: Level to calculate XP for
+            
+        Returns:
+            Total XP needed from level 1 to reach target_level
+        """
+        total = 0
+        for lvl in range(1, target_level):
+            total += int(100 * (lvl ** 1.5))
+        return total
+
+    def can_level_up(self) -> bool:
+        """
+        Check if player has enough XP to level up.
+        
+        Returns:
+            True if player can level up, False otherwise
+        """
+        if self.level >= 100:
+            return False
+        next_level_threshold = self.calculate_total_xp_for_level(self.level + 1)
+        return self.experience_points >= next_level_threshold
+
+    def level_up(self) -> int:
+        """
+        Level up the player if they have enough XP.
+        Grants 1 skill point per level gained.
+        
+        Returns:
+            Number of levels gained (can be multiple if enough XP)
+        """
+        if not self.can_level_up():
+            return 0
+        
+        levels_gained = 0
+        while self.can_level_up() and self.level < 100:
+            self.level += 1
+            self.available_skill_points += 1
+            levels_gained += 1
+        
+        return levels_gained
+
+    def award_xp(self, amount: int) -> int:
+        """
+        Award XP and automatically level up if thresholds reached.
+        
+        Args:
+            amount: XP to award
+            
+        Returns:
+            Number of levels gained
+        """
+        if amount < 0:
+            raise ValueError("XP amount must be non-negative")
+        
+        self.experience_points += amount
+        return self.level_up()
 
 
 class PlayerSkills(BaseModel):
@@ -181,15 +277,26 @@ class Player(BaseModel):
 
     def recalculate_value(self) -> int:
         """
-        Recalculate player value based on current skills and age.
+        Recalculate player value based on current skills, age, level, and games played.
         
-        Formula: (sum(skills) * 100) * age_factor
-        where age_factor = 1.0 if age < 30 else max(0.5, 1.0 - ((age - 30) * 0.05))
+        Comprehensive Formula (Updated Nov 4, 2025):
+            base_value = (
+                (sum_of_skills * 100) +           # Skills: primary factor
+                (games_played * 50) +             # Experience bonus
+                (level * 200) -                   # Progression bonus
+                (age_penalty_after_30)            # Age penalty
+            )
+            age_penalty = max(0, (age - 30) * 500)  # 500 per year over 30
         
         Returns:
             Calculated player value in dollars
         """
-        return calculate_player_value(self.skills.to_dict(), self.age)
+        return calculate_player_value(
+            skills=self.skills.to_dict(),
+            age=self.age,
+            level=self.stats.level,
+            games_played=self.stats.games_played
+        )
 
     def is_free_agent(self) -> bool:
         """Check if player is a free agent (not on any team)."""
@@ -290,6 +397,68 @@ class Player(BaseModel):
         self.stats.missed_throws += missed_throws
         self.stats.successful_hits += successful_hits
 
+    def spend_skill_point(self, skill_name: str) -> bool:
+        """
+        Spend an available skill point to increase a skill.
+        
+        Args:
+            skill_name: Name of skill to increase (catching, throwing, dodging, speed, iq, luck)
+            
+        Returns:
+            True if successful, False if not enough points or skill at max
+            
+        Raises:
+            ValueError: If skill name is invalid
+        """
+        valid_skills = ['catching', 'throwing', 'dodging', 'speed', 'iq', 'luck']
+        if skill_name not in valid_skills:
+            raise ValueError(f"Invalid skill name: {skill_name}")
+        
+        # Check if player has available points
+        if self.stats.available_skill_points <= 0:
+            return False
+        
+        # Check if skill is already at max
+        current_value = getattr(self.skills, skill_name)
+        if current_value >= 100:
+            return False
+        
+        # Increase skill and spend point
+        setattr(self.skills, skill_name, current_value + 1)
+        self.stats.available_skill_points -= 1
+        
+        # Recalculate value
+        self.value = self.recalculate_value()
+        
+        return True
+
+    def get_progression_info(self) -> Dict[str, any]:
+        """
+        Get player progression information for UI display.
+        
+        Returns:
+            Dictionary with level, XP, and progress to next level
+        """
+        current_xp = self.stats.experience_points
+        current_level = self.stats.level
+        
+        # Calculate XP for current and next level
+        current_level_xp = self.stats.calculate_total_xp_for_level(current_level)
+        next_level_xp = self.stats.calculate_total_xp_for_level(current_level + 1)
+        
+        # XP needed for next level
+        xp_for_next = next_level_xp - current_level_xp
+        xp_progress = current_xp - current_level_xp
+        
+        return {
+            'level': current_level,
+            'experience_points': current_xp,
+            'available_skill_points': self.stats.available_skill_points,
+            'xp_for_next_level': xp_for_next,
+            'xp_progress': xp_progress,
+            'progress_percentage': (xp_progress / xp_for_next * 100) if xp_for_next > 0 else 100
+        }
+
     class Config:
         """Pydantic model configuration."""
         json_schema_extra = {
@@ -314,7 +483,10 @@ class Player(BaseModel):
                     "times_hit": 0,
                     "missed_throws": 0,
                     "successful_hits": 0,
-                    "games_played": 0
+                    "games_played": 0,
+                    "experience_points": 0,
+                    "level": 1,
+                    "available_skill_points": 0
                 },
                 "league_id": None,
                 "team_id": None,
@@ -347,8 +519,15 @@ class PlayerCreate(BaseModel):
         Convert creation schema to Player entity.
         
         Automatically calculates player value and initializes stats.
+        For new players, level=1 and games_played=0.
         """
-        value = calculate_player_value(self.skills.to_dict(), self.age)
+        # New players start at level 1 with 0 games played
+        value = calculate_player_value(
+            skills=self.skills.to_dict(),
+            age=self.age,
+            level=1,
+            games_played=0
+        )
         
         return Player(
             name=self.name,
